@@ -59,6 +59,13 @@ namespace PostfixTemplates.Templates
         /// </summary>
         public virtual bool RequiresIteratorContext => false;
 
+        /// <summary>
+        /// Returns the placeholder text in the transformed output that should be
+        /// selected after commit so the user can type over it immediately.
+        /// Return <see langword="null"/> when no selection is needed.
+        /// </summary>
+        public virtual string SelectionPlaceholder => null;
+
         public abstract string GetTransformedText(string expression, string indent);
 
         /// <summary>

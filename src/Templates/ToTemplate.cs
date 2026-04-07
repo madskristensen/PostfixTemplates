@@ -12,6 +12,8 @@ namespace PostfixTemplates.Templates
 
         public override ExpressionType ApplicableTypes => ExpressionType.Any;
 
+        public override string SelectionPlaceholder => "lvalue";
+
         public override string GetTransformedText(string expression, string indent)
         {
             return $"lvalue = {expression};";

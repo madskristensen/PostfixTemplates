@@ -14,6 +14,8 @@ namespace PostfixTemplates.Templates
 
         public override bool RequiresValueExpression => false;
 
+        public override string SelectionPlaceholder => "dependency";
+
         public override string GetTransformedText(string expression, string indent)
         {
             return $"({expression} dependency)";

@@ -94,6 +94,22 @@ namespace PostfixTemplates.Completion
                     edit.Apply();
                 }
 
+                string placeholder = template.SelectionPlaceholder;
+
+                if (placeholder != null)
+                {
+                    ITextSnapshot currentSnapshot = buffer.CurrentSnapshot;
+                    int placeholderIndex = transformedText.IndexOf(placeholder, StringComparison.Ordinal);
+
+                    if (placeholderIndex >= 0)
+                    {
+                        int selectionStart = expressionStart + placeholderIndex;
+                        var selectionSpan = new SnapshotSpan(currentSnapshot, selectionStart, placeholder.Length);
+                        _textView.Selection.Select(selectionSpan, isReversed: false);
+                        _textView.Caret.MoveTo(selectionSpan.End);
+                    }
+                }
+
                 return CommitResult.Handled;
             }
             catch (Exception ex)
