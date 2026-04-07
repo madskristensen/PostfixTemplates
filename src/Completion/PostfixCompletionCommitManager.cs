@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
@@ -12,6 +11,7 @@ namespace PostfixTemplates.Completion
 {
     internal sealed class PostfixCompletionCommitManager : IAsyncCompletionCommitManager
     {
+        private static readonly char[] _commitCharacters = { '\t', '\n' };
         private readonly ITextView _textView;
 
         public PostfixCompletionCommitManager(ITextView textView)
@@ -19,13 +19,7 @@ namespace PostfixTemplates.Completion
             _textView = textView;
         }
 
-        public IEnumerable<char> PotentialCommitCharacters
-        {
-            get
-            {
-                return new[] { '\t', '\n' };
-            }
-        }
+        public IEnumerable<char> PotentialCommitCharacters => _commitCharacters;
 
         public bool ShouldCommitCompletion(IAsyncCompletionSession session, SnapshotPoint location, char typedChar, CancellationToken cancellationToken)
         {
@@ -68,9 +62,7 @@ namespace PostfixTemplates.Completion
                     return CommitResult.Unhandled;
                 }
 
-                PostfixTemplate template = PostfixTemplate.All.FirstOrDefault(t => t.Name == templateName);
-
-                if (template == null)
+                if (!PostfixTemplate.ByName.TryGetValue(templateName, out PostfixTemplate template))
                 {
                     return CommitResult.Unhandled;
                 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 
 namespace PostfixTemplates.Templates
@@ -281,5 +282,11 @@ namespace PostfixTemplates.Templates
             new WriteLineTemplate(),
             new YieldTemplate()
         ];
+
+        /// <summary>
+        /// O(1) lookup by template name for use in commit and description paths.
+        /// </summary>
+        public static IReadOnlyDictionary<string, PostfixTemplate> ByName { get; } =
+            All.ToDictionary(t => t.Name, StringComparer.OrdinalIgnoreCase);
     }
 }

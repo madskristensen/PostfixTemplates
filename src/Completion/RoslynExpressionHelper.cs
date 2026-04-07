@@ -1,3 +1,4 @@
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -26,14 +27,14 @@ namespace PostfixTemplates.Completion
             public bool IsTypeExpression { get; set; }
         }
 
-        public static ExpressionResult FindExpressionBeforeDot(SyntaxTree tree, int dotPosition)
+        public static ExpressionResult FindExpressionBeforeDot(SyntaxTree tree, int dotPosition, CancellationToken cancellationToken = default)
         {
             if (tree == null || dotPosition <= 0)
             {
                 return null;
             }
 
-            SyntaxNode root = tree.GetRoot();
+            SyntaxNode root = tree.GetRoot(cancellationToken);
             SyntaxToken token = root.FindToken(dotPosition - 1);
 
             if (token.IsKind(SyntaxKind.None))
@@ -83,14 +84,14 @@ namespace PostfixTemplates.Completion
         /// <summary>
         /// Determines whether the given position is inside an async method or lambda.
         /// </summary>
-        public static bool IsInAsyncContext(SyntaxTree tree, int position)
+        public static bool IsInAsyncContext(SyntaxTree tree, int position, CancellationToken cancellationToken = default)
         {
             if (tree == null)
             {
                 return false;
             }
 
-            SyntaxNode root = tree.GetRoot();
+            SyntaxNode root = tree.GetRoot(cancellationToken);
             SyntaxNode node = root.FindToken(position).Parent;
 
             while (node != null)
@@ -130,14 +131,14 @@ namespace PostfixTemplates.Completion
         /// Determines whether the given position is inside a method that returns an
         /// iterator type (IEnumerable, IEnumerable&lt;T&gt;, IEnumerator, IEnumerator&lt;T&gt;).
         /// </summary>
-        public static bool IsInIteratorContext(SyntaxTree tree, int position, SemanticModel semanticModel)
+        public static bool IsInIteratorContext(SyntaxTree tree, int position, SemanticModel semanticModel, CancellationToken cancellationToken = default)
         {
             if (tree == null)
             {
                 return false;
             }
 
-            SyntaxNode root = tree.GetRoot();
+            SyntaxNode root = tree.GetRoot(cancellationToken);
             SyntaxNode node = root.FindToken(position).Parent;
 
             while (node != null)

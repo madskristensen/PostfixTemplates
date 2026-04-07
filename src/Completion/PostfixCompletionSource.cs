@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -77,7 +76,7 @@ namespace PostfixTemplates.Completion
                     return VsCompletionContext.Empty;
                 }
 
-                RoslynExpressionHelper.ExpressionResult expressionResult = RoslynExpressionHelper.FindExpressionBeforeDot(tree, dotPosition);
+                RoslynExpressionHelper.ExpressionResult expressionResult = RoslynExpressionHelper.FindExpressionBeforeDot(tree, dotPosition, cancellationToken);
 
                 if (expressionResult == null)
                 {
@@ -142,13 +141,13 @@ namespace PostfixTemplates.Completion
                     }
 
                     // Skip templates that require an async context when not in an async method/lambda
-                    if (template.RequiresAsyncContext && !RoslynExpressionHelper.IsInAsyncContext(tree, dotPosition))
+                    if (template.RequiresAsyncContext && !RoslynExpressionHelper.IsInAsyncContext(tree, dotPosition, cancellationToken))
                     {
                         continue;
                     }
 
                     // Skip templates that require an iterator context when not in an iterator method
-                    if (template.RequiresIteratorContext && !RoslynExpressionHelper.IsInIteratorContext(tree, dotPosition, semanticModel))
+                    if (template.RequiresIteratorContext && !RoslynExpressionHelper.IsInIteratorContext(tree, dotPosition, semanticModel, cancellationToken))
                     {
                         continue;
                     }
@@ -173,18 +172,14 @@ namespace PostfixTemplates.Completion
 
         public Task<object> GetDescriptionAsync(IAsyncCompletionSession session, VsCompletionItem item, CancellationToken cancellationToken)
         {
-            if (item.Properties.TryGetProperty("PostfixTemplate", out string templateName))
+            if (item.Properties.TryGetProperty("PostfixTemplate", out string templateName)
+                && PostfixTemplate.ByName.TryGetValue(templateName, out PostfixTemplate template))
             {
-                PostfixTemplate template = PostfixTemplate.All.FirstOrDefault(t => t.Name == templateName);
-
-                if (template != null)
-                {
-                    var description = $"{template.Description}\n\nExample: {template.Example}";
-                    return Task.FromResult<object>(description);
-                }
+                var description = $"{template.Description}\n\nExample: {template.Example}";
+                return Task.FromResult<object>(description);
             }
 
-            return Task.FromResult<object>(string.Empty);
+            return Task.FromResult<object>(null);
         }
 
         private int FindDotPosition(SnapshotPoint triggerLocation)
