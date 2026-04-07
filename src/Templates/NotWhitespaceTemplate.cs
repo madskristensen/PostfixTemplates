@@ -6,9 +6,9 @@ namespace PostfixTemplates.Templates
     {
         public override string Name => "notwhitespace";
 
-        public override string Description => "Checks if string is null or whitespace";
+        public override string Description => "Checks if string is not null or whitespace";
 
-        public override string Example => "if (string.IsNullOrWhiteSpace(expr)) { }";
+        public override string Example => "if (!string.IsNullOrWhiteSpace(expr)) { }";
 
         public override string Suffix => "null or whitespace check";
 
@@ -16,7 +16,7 @@ namespace PostfixTemplates.Templates
 
         public override string GetTransformedText(string expression, string indent)
         {
-            return $"if (string.IsNullOrWhiteSpace({expression})){Environment.NewLine}{indent}{{{Environment.NewLine}{indent}    {Environment.NewLine}{indent}}}";
+            return $"if (!string.IsNullOrWhiteSpace({expression})){Environment.NewLine}{indent}{{{Environment.NewLine}{indent}    {Environment.NewLine}{indent}}}";
         }
     }
 }

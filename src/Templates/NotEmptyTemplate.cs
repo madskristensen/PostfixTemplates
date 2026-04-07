@@ -6,9 +6,9 @@ namespace PostfixTemplates.Templates
     {
         public override string Name => "notempty";
 
-        public override string Description => "Checks if string is null or empty";
+        public override string Description => "Checks if string is not null or empty";
 
-        public override string Example => "if (string.IsNullOrEmpty(expr)) { }";
+        public override string Example => "if (!string.IsNullOrEmpty(expr)) { }";
 
         public override string Suffix => "null or empty check";
 
@@ -16,7 +16,7 @@ namespace PostfixTemplates.Templates
 
         public override string GetTransformedText(string expression, string indent)
         {
-            return $"if (string.IsNullOrEmpty({expression})){Environment.NewLine}{indent}{{{Environment.NewLine}{indent}    {Environment.NewLine}{indent}}}";
+            return $"if (!string.IsNullOrEmpty({expression})){Environment.NewLine}{indent}{{{Environment.NewLine}{indent}    {Environment.NewLine}{indent}}}";
         }
     }
 }

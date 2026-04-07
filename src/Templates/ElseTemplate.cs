@@ -16,9 +16,7 @@ namespace PostfixTemplates.Templates
 
         public override string GetTransformedText(string expression, string indent)
         {
-            var needsParentheses = expression.Contains(" ") || expression.Contains("&&") || expression.Contains("||") || expression.Contains("==") || expression.Contains("!=") || expression.Contains("<") || expression.Contains(">");
-
-            var negated = needsParentheses ? $"!({expression})" : $"!{expression}";
+            var negated = NeedsParenthesesForNegation(expression) ? $"!({expression})" : $"!{expression}";
             return $"if ({negated}){Environment.NewLine}{indent}{{{Environment.NewLine}{indent}    {Environment.NewLine}{indent}}}";
         }
     }

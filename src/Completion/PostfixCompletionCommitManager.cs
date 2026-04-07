@@ -30,7 +30,7 @@ namespace PostfixTemplates.Completion
                 return false;
             }
 
-            if (!selectedItem.Properties.ContainsProperty("PostfixTemplate"))
+            if (!selectedItem.Properties.ContainsProperty(CompletionPropertyNames.PostfixTemplate))
             {
                 return false;
             }
@@ -42,22 +42,22 @@ namespace PostfixTemplates.Completion
         {
             try
             {
-                if (!item.Properties.TryGetProperty("PostfixTemplate", out string templateName))
+                if (!item.Properties.TryGetProperty(CompletionPropertyNames.PostfixTemplate, out string templateName))
                 {
                     return CommitResult.Unhandled;
                 }
 
-                if (!item.Properties.TryGetProperty("ExpressionText", out string expressionText))
+                if (!item.Properties.TryGetProperty(CompletionPropertyNames.ExpressionText, out string expressionText))
                 {
                     return CommitResult.Unhandled;
                 }
 
-                if (!item.Properties.TryGetProperty("ExpressionStart", out int expressionStart))
+                if (!item.Properties.TryGetProperty(CompletionPropertyNames.ExpressionStart, out int expressionStart))
                 {
                     return CommitResult.Unhandled;
                 }
 
-                if (!item.Properties.TryGetProperty("DotPosition", out int dotPosition))
+                if (!item.Properties.TryGetProperty(CompletionPropertyNames.DotPosition, out int dotPosition))
                 {
                     return CommitResult.Unhandled;
                 }

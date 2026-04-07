@@ -15,11 +15,16 @@ namespace PostfixTemplates.Templates
         Nullable = 2,
         Enumerable = 4,
         Exception = 8,
-        Disposable = 32,
-        Awaitable = 64,
-        String = 128,
-        ReferenceType = 256,
-        Any = 16
+        Disposable = 16,
+        Awaitable = 32,
+        String = 64,
+        ReferenceType = 128,
+
+        /// <summary>
+        /// Sentinel value indicating the template applies to any expression type.
+        /// Not a combinable flag - checked explicitly via <see cref="Enum.HasFlag"/>.
+        /// </summary>
+        Any = int.MaxValue
     }
 
     internal abstract class PostfixTemplate
@@ -68,6 +73,21 @@ namespace PostfixTemplates.Templates
         public virtual string SelectionPlaceholder => null;
 
         public abstract string GetTransformedText(string expression, string indent);
+
+        /// <summary>
+        /// Determines whether the given expression needs to be wrapped in parentheses
+        /// before applying a negation operator.
+        /// </summary>
+        protected static bool NeedsParenthesesForNegation(string expression)
+        {
+            return expression.Contains(" ")
+                || expression.Contains("&&")
+                || expression.Contains("||")
+                || expression.Contains("==")
+                || expression.Contains("!=")
+                || expression.Contains("<")
+                || expression.Contains(">");
+        }
 
         /// <summary>
         /// Determines if this template is applicable for the given expression type.

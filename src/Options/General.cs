@@ -93,13 +93,13 @@ namespace PostfixTemplates
 
         [Category("Null and Empty Checks")]
         [DisplayName("Enable '.notempty'")]
-        [Description("Checks if string is null or empty")]
+        [Description("Checks if string is not null or empty")]
         [DefaultValue(true)]
         public bool EnableNotEmpty { get; set; } = true;
 
         [Category("Null and Empty Checks")]
         [DisplayName("Enable '.notwhitespace'")]
-        [Description("Checks if string is null or whitespace")]
+        [Description("Checks if string is not null or whitespace")]
         [DefaultValue(true)]
         public bool EnableNotWhitespace { get; set; } = true;
 

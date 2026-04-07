@@ -86,6 +86,7 @@ namespace PostfixTemplates.Completion
                 // Get the semantic model to determine the expression's type
                 SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken);
                 ITypeSymbol expressionType = null;
+                var isTypeExpression = false;
 
                 if (semanticModel != null && expressionResult.ExpressionNode != null)
                 {
@@ -98,7 +99,7 @@ namespace PostfixTemplates.Completion
                     if (expressionType == null)
                     {
                         SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(expressionResult.ExpressionNode, cancellationToken);
-                        expressionResult.IsTypeExpression = symbolInfo.Symbol is ITypeSymbol;
+                        isTypeExpression = symbolInfo.Symbol is ITypeSymbol;
                     }
                 }
 
@@ -129,13 +130,13 @@ namespace PostfixTemplates.Completion
                     }
 
                     // Skip value-expression-only templates when the expression is a type reference
-                    if (expressionResult.IsTypeExpression && template.RequiresValueExpression)
+                    if (isTypeExpression && template.RequiresValueExpression)
                     {
                         continue;
                     }
 
                     // Skip type-only templates when the expression is a value (not a type reference)
-                    if (!expressionResult.IsTypeExpression && !template.RequiresValueExpression)
+                    if (!isTypeExpression && !template.RequiresValueExpression)
                     {
                         continue;
                     }
@@ -153,10 +154,10 @@ namespace PostfixTemplates.Completion
                     }
 
                     var item = new VsCompletionItem(template.Name, this, _icon, ImmutableArray<CompletionFilter>.Empty, template.Suffix);
-                    item.Properties.AddProperty("PostfixTemplate", template.Name);
-                    item.Properties.AddProperty("ExpressionText", expressionResult.Text);
-                    item.Properties.AddProperty("ExpressionStart", expressionResult.SpanStart);
-                    item.Properties.AddProperty("DotPosition", dotPosition);
+                    item.Properties.AddProperty(CompletionPropertyNames.PostfixTemplate, template.Name);
+                    item.Properties.AddProperty(CompletionPropertyNames.ExpressionText, expressionResult.Text);
+                    item.Properties.AddProperty(CompletionPropertyNames.ExpressionStart, expressionResult.SpanStart);
+                    item.Properties.AddProperty(CompletionPropertyNames.DotPosition, dotPosition);
 
                     items.Add(item);
                 }
@@ -172,7 +173,7 @@ namespace PostfixTemplates.Completion
 
         public Task<object> GetDescriptionAsync(IAsyncCompletionSession session, VsCompletionItem item, CancellationToken cancellationToken)
         {
-            if (item.Properties.TryGetProperty("PostfixTemplate", out string templateName)
+            if (item.Properties.TryGetProperty(CompletionPropertyNames.PostfixTemplate, out string templateName)
                 && PostfixTemplate.ByName.TryGetValue(templateName, out PostfixTemplate template))
             {
                 var description = $"{template.Description}\n\nExample: {template.Example}";

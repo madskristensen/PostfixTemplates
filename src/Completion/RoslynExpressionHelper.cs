@@ -8,7 +8,7 @@ namespace PostfixTemplates.Completion
 {
     internal static class RoslynExpressionHelper
     {
-        internal sealed class ExpressionResult(string text, int spanStart, int spanEnd, ExpressionSyntax expressionNode = null)
+        internal sealed class ExpressionResult(string text, int spanStart, int spanEnd, ExpressionSyntax expressionNode = null, bool isTypeExpression = false)
         {
             public string Text { get; } = text;
             public int SpanStart { get; } = spanStart;
@@ -24,7 +24,7 @@ namespace PostfixTemplates.Completion
             /// Whether the expression refers to a type rather than a value (e.g. <c>ExecutionContext.</c>).
             /// Set after resolving symbols via the semantic model.
             /// </summary>
-            public bool IsTypeExpression { get; set; }
+            public bool IsTypeExpression { get; } = isTypeExpression;
         }
 
         public static ExpressionResult FindExpressionBeforeDot(SyntaxTree tree, int dotPosition, CancellationToken cancellationToken = default)
