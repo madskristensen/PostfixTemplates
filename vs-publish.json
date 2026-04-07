@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json.schemastore.org/vsix-publish",
+  "categories": [ "other" ],
+  "private": false,
+  "identity": {
+    "internalName": "BookmarkStudio",
+    "tags": [ "bookmarks" ]
+  },
+  "assetFiles": [
+    {
+      "pathOnDisk": "art/bookmark-manager.png",
+      "targetPath": "art/bookmark-manager.png"
+    },
+    {
+      "pathOnDisk": "art/glyphs.png",
+      "targetPath": "art/glyphs.png"
+    },
+    {
+      "pathOnDisk": "art/set-color.png",
+      "targetPath": "art/set-color.png"
+    },
+    {
+      "pathOnDisk": "art/toolbar.png",
+      "targetPath": "art/toolbar.png"
+    },
+    {
+      "pathOnDisk": "art/glyph-drag-drop.gif",
+      "targetPath": "art/glyph-drag-drop.gif"
+    }
+  ],
+  "overview": "README.md",
+  "publisher": "MadsKristensen",
+  "repo": "https://github.com/madskristensen/BookmarkStudio"
+}
