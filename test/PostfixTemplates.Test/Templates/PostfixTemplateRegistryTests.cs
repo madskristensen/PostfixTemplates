@@ -1,6 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PostfixTemplates.Templates;
-using System.Linq;
 
 namespace PostfixTemplates.Test.Templates;
 
@@ -8,9 +6,9 @@ namespace PostfixTemplates.Test.Templates;
 public class PostfixTemplateRegistryTests
 {
     [TestMethod]
-    public void All_ContainsExactly10Templates()
+    public void All_ContainsExactly29Templates()
     {
-        Assert.HasCount(10, PostfixTemplate.All);
+        Assert.HasCount(29, PostfixTemplate.All);
     }
 
     [TestMethod]
@@ -25,7 +23,7 @@ public class PostfixTemplateRegistryTests
     [TestMethod]
     public void All_NoTemplateHasNullOrEmptyName()
     {
-        foreach (var template in PostfixTemplate.All)
+        foreach (PostfixTemplate? template in PostfixTemplate.All)
         {
             Assert.IsFalse(string.IsNullOrEmpty(template.Name), $"Template name cannot be null or empty");
         }
@@ -34,7 +32,7 @@ public class PostfixTemplateRegistryTests
     [TestMethod]
     public void All_NoTemplateHasNullOrEmptyDescription()
     {
-        foreach (var template in PostfixTemplate.All)
+        foreach (PostfixTemplate? template in PostfixTemplate.All)
         {
             Assert.IsFalse(string.IsNullOrEmpty(template.Description), $"Template {template.Name} has null or empty description");
         }
@@ -43,7 +41,7 @@ public class PostfixTemplateRegistryTests
     [TestMethod]
     public void All_NoTemplateHasNullOrEmptyExample()
     {
-        foreach (var template in PostfixTemplate.All)
+        foreach (PostfixTemplate? template in PostfixTemplate.All)
         {
             Assert.IsFalse(string.IsNullOrEmpty(template.Example), $"Template {template.Name} has null or empty example");
         }
@@ -107,5 +105,119 @@ public class PostfixTemplateRegistryTests
     public void All_ContainsThrowTemplate()
     {
         Assert.IsTrue(PostfixTemplate.All.Any(t => t.Name == "throw"));
+    }
+
+    [TestMethod]
+    public void All_ContainsArgTemplate()
+    {
+        Assert.IsTrue(PostfixTemplate.All.Any(t => t.Name == "arg"));
+    }
+
+    [TestMethod]
+    public void All_ContainsAwaitTemplate()
+    {
+        Assert.IsTrue(PostfixTemplate.All.Any(t => t.Name == "await"));
+    }
+
+    [TestMethod]
+    public void All_ContainsCastTemplate()
+    {
+        Assert.IsTrue(PostfixTemplate.All.Any(t => t.Name == "cast"));
+    }
+
+    [TestMethod]
+    public void All_ContainsFieldTemplate()
+    {
+        Assert.IsTrue(PostfixTemplate.All.Any(t => t.Name == "field"));
+    }
+
+    [TestMethod]
+    public void All_ContainsForTemplate()
+    {
+        Assert.IsTrue(PostfixTemplate.All.Any(t => t.Name == "for"));
+    }
+
+    [TestMethod]
+    public void All_ContainsForRTemplate()
+    {
+        Assert.IsTrue(PostfixTemplate.All.Any(t => t.Name == "forr"));
+    }
+
+    [TestMethod]
+    public void All_ContainsInjectTemplate()
+    {
+        Assert.IsTrue(PostfixTemplate.All.Any(t => t.Name == "inject"));
+    }
+
+    [TestMethod]
+    public void All_ContainsLockTemplate()
+    {
+        Assert.IsTrue(PostfixTemplate.All.Any(t => t.Name == "lock"));
+    }
+
+    [TestMethod]
+    public void All_ContainsNewTemplate()
+    {
+        Assert.IsTrue(PostfixTemplate.All.Any(t => t.Name == "new"));
+    }
+
+    [TestMethod]
+    public void All_ContainsParTemplate()
+    {
+        Assert.IsTrue(PostfixTemplate.All.Any(t => t.Name == "par"));
+    }
+
+    [TestMethod]
+    public void All_ContainsParseTemplate()
+    {
+        Assert.IsTrue(PostfixTemplate.All.Any(t => t.Name == "parse"));
+    }
+
+    [TestMethod]
+    public void All_ContainsPropTemplate()
+    {
+        Assert.IsTrue(PostfixTemplate.All.Any(t => t.Name == "prop"));
+    }
+
+    [TestMethod]
+    public void All_ContainsSelTemplate()
+    {
+        Assert.IsTrue(PostfixTemplate.All.Any(t => t.Name == "sel"));
+    }
+
+    [TestMethod]
+    public void All_ContainsSwitchTemplate()
+    {
+        Assert.IsTrue(PostfixTemplate.All.Any(t => t.Name == "switch"));
+    }
+
+    [TestMethod]
+    public void All_ContainsToTemplate()
+    {
+        Assert.IsTrue(PostfixTemplate.All.Any(t => t.Name == "to"));
+    }
+
+    [TestMethod]
+    public void All_ContainsTryParseTemplate()
+    {
+        Assert.IsTrue(PostfixTemplate.All.Any(t => t.Name == "tryparse"));
+    }
+
+    [TestMethod]
+    public void All_ContainsTypeofTemplate()
+    {
+        Assert.IsTrue(PostfixTemplate.All.Any(t => t.Name == "typeof"));
+    }
+
+    [TestMethod]
+    public void All_ContainsUsingTemplate()
+    {
+        Assert.IsTrue(PostfixTemplate.All.Any(t => t.Name == "using"));
+    }
+
+    [TestMethod]
+    public void All_ContainsYieldTemplate()
+    {
+        Assert.IsTrue(PostfixTemplate.All.Any(t => t.Name == "yield"));
     }
 }

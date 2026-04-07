@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 
@@ -100,7 +99,7 @@ namespace PostfixTemplates.Templates
             }
 
             // Check for IEnumerable interface
-            foreach (var iface in typeSymbol.AllInterfaces)
+            foreach (INamedTypeSymbol iface in typeSymbol.AllInterfaces)
             {
                 if (iface.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T ||
                     iface.SpecialType == SpecialType.System_Collections_IEnumerable)
@@ -121,7 +120,7 @@ namespace PostfixTemplates.Templates
 
         private static bool IsException(ITypeSymbol typeSymbol)
         {
-            var current = typeSymbol;
+            ITypeSymbol current = typeSymbol;
 
             while (current != null)
             {
@@ -137,18 +136,37 @@ namespace PostfixTemplates.Templates
             return false;
         }
 
-        public static IReadOnlyList<PostfixTemplate> All { get; } = new PostfixTemplate[]
-        {
-            new IfTemplate(),
+        public static IReadOnlyList<PostfixTemplate> All { get; } =
+        [
+            new ArgTemplate(),
+            new AwaitTemplate(),
+            new CastTemplate(),
             new ElseTemplate(),
-            new VarTemplate(),
+            new FieldTemplate(),
+            new ForTemplate(),
+            new ForRTemplate(),
+            new ForEachTemplate(),
+            new IfTemplate(),
+            new InjectTemplate(),
+            new LockTemplate(),
+            new NewTemplate(),
             new NotTemplate(),
             new NullTemplate(),
             new NotNullTemplate(),
+            new ParTemplate(),
+            new ParseTemplate(),
+            new PropTemplate(),
             new ReturnTemplate(),
-            new ForEachTemplate(),
+            new SelTemplate(),
+            new SwitchTemplate(),
+            new ThrowTemplate(),
+            new ToTemplate(),
+            new TryParseTemplate(),
+            new TypeofTemplate(),
+            new UsingTemplate(),
+            new VarTemplate(),
             new WhileTemplate(),
-            new ThrowTemplate()
-        };
+            new YieldTemplate()
+        ];
     }
 }

@@ -29,7 +29,7 @@ namespace PostfixTemplates.Completion
 
         public bool ShouldCommitCompletion(IAsyncCompletionSession session, SnapshotPoint location, char typedChar, CancellationToken cancellationToken)
         {
-            var selectedItem = session.GetComputedItems(cancellationToken).SelectedItem;
+            CompletionItem selectedItem = session.GetComputedItems(cancellationToken).SelectedItem;
 
             if (selectedItem == null)
             {
@@ -68,25 +68,25 @@ namespace PostfixTemplates.Completion
                     return CommitResult.Unhandled;
                 }
 
-                var template = PostfixTemplate.All.FirstOrDefault(t => t.Name == templateName);
+                PostfixTemplate template = PostfixTemplate.All.FirstOrDefault(t => t.Name == templateName);
 
                 if (template == null)
                 {
                     return CommitResult.Unhandled;
                 }
 
-                var snapshot = buffer.CurrentSnapshot;
-                var applicableSpan = session.ApplicableToSpan.GetSpan(snapshot);
+                ITextSnapshot snapshot = buffer.CurrentSnapshot;
+                SnapshotSpan applicableSpan = session.ApplicableToSpan.GetSpan(snapshot);
                 var endPosition = applicableSpan.End.Position;
 
-                var line = snapshot.GetLineFromPosition(expressionStart);
+                ITextSnapshotLine line = snapshot.GetLineFromPosition(expressionStart);
                 var lineText = line.GetText();
                 var indentLength = lineText.Length - lineText.TrimStart().Length;
                 var indent = lineText.Substring(0, indentLength);
 
                 var transformedText = template.GetTransformedText(expressionText, indent);
 
-                using (var edit = buffer.CreateEdit())
+                using (ITextEdit edit = buffer.CreateEdit())
                 {
                     var spanToReplace = new Span(expressionStart, endPosition - expressionStart);
                     edit.Delete(spanToReplace);

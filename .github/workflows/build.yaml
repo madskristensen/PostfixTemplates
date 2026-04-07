@@ -52,7 +52,7 @@ jobs:
       run: msbuild /v:m -restore /p:OutDir=\_built
 
     - name: Run tests
-      run: dotnet vstest /_built/BookmarkStudio.Test.dll --logger "trx;LogFileName=test-results.trx"
+      run: dotnet vstest /_built/PostfixTemplates.Test.dll --logger "trx;LogFileName=test-results.trx"
 
     - name: Report test results
       uses: dorny/test-reporter@v3

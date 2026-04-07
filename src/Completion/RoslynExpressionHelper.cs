@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace PostfixTemplates.Completion
 {
@@ -34,15 +35,15 @@ namespace PostfixTemplates.Completion
                 return null;
             }
 
-            var root = tree.GetRoot();
-            var token = root.FindToken(dotPosition - 1);
+            SyntaxNode root = tree.GetRoot();
+            SyntaxToken token = root.FindToken(dotPosition - 1);
 
             if (token.IsKind(SyntaxKind.None))
             {
                 return null;
             }
 
-            var node = token.Parent;
+            SyntaxNode node = token.Parent;
 
             while (node != null)
             {
@@ -58,15 +59,15 @@ namespace PostfixTemplates.Completion
                         continue;
                     }
 
-                    var expression = memberAccess.Expression;
-                    var span = expression.Span;
+                    ExpressionSyntax expression = memberAccess.Expression;
+                    TextSpan span = expression.Span;
                     var text = expression.ToString();
                     return new ExpressionResult(text, span.Start, span.End, expression);
                 }
 
                 if (node is ExpressionSyntax exprSyntax && !(node.Parent is MemberAccessExpressionSyntax))
                 {
-                    var exprSpan = exprSyntax.Span;
+                    TextSpan exprSpan = exprSyntax.Span;
                     var exprText = exprSyntax.ToString();
 
                     if (exprSpan.End == dotPosition - 1 || exprSpan.End == dotPosition)

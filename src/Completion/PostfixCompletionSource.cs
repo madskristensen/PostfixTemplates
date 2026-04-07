@@ -32,7 +32,7 @@ namespace PostfixTemplates.Completion
                 return CompletionStartData.DoesNotParticipateInCompletion;
             }
 
-            var line = triggerLocation.GetContainingLine();
+            ITextSnapshotLine line = triggerLocation.GetContainingLine();
             var lineText = line.GetText();
             var positionInLine = triggerLocation.Position - line.Start.Position;
 
@@ -56,15 +56,15 @@ namespace PostfixTemplates.Completion
         {
             try
             {
-                var snapshot = triggerLocation.Snapshot;
-                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                ITextSnapshot snapshot = triggerLocation.Snapshot;
+                Document document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
 
                 if (document == null)
                 {
                     return VsCompletionContext.Empty;
                 }
 
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken);
+                SyntaxTree tree = await document.GetSyntaxTreeAsync(cancellationToken);
 
                 if (tree == null)
                 {
@@ -78,7 +78,7 @@ namespace PostfixTemplates.Completion
                     return VsCompletionContext.Empty;
                 }
 
-                var expressionResult = RoslynExpressionHelper.FindExpressionBeforeDot(tree, dotPosition);
+                RoslynExpressionHelper.ExpressionResult expressionResult = RoslynExpressionHelper.FindExpressionBeforeDot(tree, dotPosition);
 
                 if (expressionResult == null)
                 {
@@ -86,23 +86,23 @@ namespace PostfixTemplates.Completion
                 }
 
                 // Get the semantic model to determine the expression's type
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+                SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken);
                 ITypeSymbol expressionType = null;
 
                 if (semanticModel != null && expressionResult.ExpressionNode != null)
                 {
-                    var typeInfo = semanticModel.GetTypeInfo(expressionResult.ExpressionNode, cancellationToken);
+                    TypeInfo typeInfo = semanticModel.GetTypeInfo(expressionResult.ExpressionNode, cancellationToken);
                     expressionType = typeInfo.Type;
                 }
 
-                var settings = await General.GetLiveInstanceAsync();
+                General settings = await General.GetLiveInstanceAsync();
 
                 // Get existing completion items from Roslyn to avoid duplicates
-                var existingItemNames = await GetExistingCompletionItemNamesAsync(document, triggerLocation.Position, cancellationToken);
+                HashSet<string> existingItemNames = await GetExistingCompletionItemNamesAsync(document, triggerLocation.Position, cancellationToken);
 
-                var items = ImmutableArray.CreateBuilder<VsCompletionItem>();
+                ImmutableArray<VsCompletionItem>.Builder items = ImmutableArray.CreateBuilder<VsCompletionItem>();
 
-                foreach (var template in PostfixTemplate.All)
+                foreach (PostfixTemplate template in PostfixTemplate.All)
                 {
                     if (!settings.IsTemplateEnabled(template.Name))
                     {
@@ -143,7 +143,7 @@ namespace PostfixTemplates.Completion
         {
             if (item.Properties.TryGetProperty("PostfixTemplate", out string templateName))
             {
-                var template = PostfixTemplate.All.FirstOrDefault(t => t.Name == templateName);
+                PostfixTemplate template = PostfixTemplate.All.FirstOrDefault(t => t.Name == templateName);
 
                 if (template != null)
                 {
@@ -157,7 +157,7 @@ namespace PostfixTemplates.Completion
 
         private int FindDotPosition(SnapshotPoint triggerLocation)
         {
-            var line = triggerLocation.GetContainingLine();
+            ITextSnapshotLine line = triggerLocation.GetContainingLine();
             var lineText = line.GetText();
             var positionInLine = triggerLocation.Position - line.Start.Position;
 
@@ -195,14 +195,14 @@ namespace PostfixTemplates.Completion
                     return result;
                 }
 
-                var completions = await completionService.GetCompletionsAsync(document, position, cancellationToken: cancellationToken);
+                CompletionList completions = await completionService.GetCompletionsAsync(document, position, cancellationToken: cancellationToken);
 
                 if (completions == null)
                 {
                     return result;
                 }
 
-                foreach (var item in completions.Items)
+                foreach (Microsoft.CodeAnalysis.Completion.CompletionItem item in completions.Items)
                 {
                     result.Add(item.DisplayText);
                 }

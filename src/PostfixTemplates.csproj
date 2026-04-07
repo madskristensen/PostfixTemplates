@@ -48,9 +48,27 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PostfixTemplatesPackage.cs" />
     <Compile Include="Options\General.cs" />
+    <Compile Include="Templates\ArgTemplate.cs" />
+    <Compile Include="Templates\AwaitTemplate.cs" />
+    <Compile Include="Templates\CastTemplate.cs" />
+    <Compile Include="Templates\FieldTemplate.cs" />
+    <Compile Include="Templates\ForRTemplate.cs" />
+    <Compile Include="Templates\ForTemplate.cs" />
+    <Compile Include="Templates\InjectTemplate.cs" />
+    <Compile Include="Templates\LockTemplate.cs" />
+    <Compile Include="Templates\NewTemplate.cs" />
+    <Compile Include="Templates\ParseTemplate.cs" />
+    <Compile Include="Templates\ParTemplate.cs" />
     <Compile Include="Templates\PostfixTemplate.cs" />
     <Compile Include="Templates\IfTemplate.cs" />
     <Compile Include="Templates\ElseTemplate.cs" />
+    <Compile Include="Templates\PropTemplate.cs" />
+    <Compile Include="Templates\SelTemplate.cs" />
+    <Compile Include="Templates\SwitchTemplate.cs" />
+    <Compile Include="Templates\ToTemplate.cs" />
+    <Compile Include="Templates\TryParseTemplate.cs" />
+    <Compile Include="Templates\TypeofTemplate.cs" />
+    <Compile Include="Templates\UsingTemplate.cs" />
     <Compile Include="Templates\VarTemplate.cs" />
     <Compile Include="Templates\NotTemplate.cs" />
     <Compile Include="Templates\NullTemplate.cs" />
@@ -69,6 +87,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>source.extension.vsixmanifest</DependentUpon>
     </Compile>
+    <Compile Include="Templates\YieldTemplate.cs" />
     <Compile Include="VSCommandTable.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

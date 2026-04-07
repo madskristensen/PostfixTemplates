@@ -1,5 +1,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using PostfixTemplates.Templates;
 
 namespace PostfixTemplates.Test.Templates;
@@ -9,8 +10,8 @@ public class PostfixTemplateApplicabilityTests
 {
     private static SemanticModel GetSemanticModel(string code)
     {
-        var tree = CSharpSyntaxTree.ParseText(code);
-        var compilation = CSharpCompilation.Create("Test")
+        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
+        CSharpCompilation compilation = CSharpCompilation.Create("Test")
             .AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
             .AddSyntaxTrees(tree);
         return compilation.GetSemanticModel(tree);
@@ -24,15 +25,15 @@ class Test {{
         {typeName} x = default;
     }}
 }}";
-        var tree = CSharpSyntaxTree.ParseText(code);
-        var compilation = CSharpCompilation.Create("Test")
+        SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
+        CSharpCompilation compilation = CSharpCompilation.Create("Test")
             .AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
             .AddReferences(MetadataReference.CreateFromFile(typeof(System.Collections.Generic.List<>).Assembly.Location))
             .AddSyntaxTrees(tree);
-        var semanticModel = compilation.GetSemanticModel(tree);
+        SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-        var root = tree.GetRoot();
-        var variableDeclaration = root.DescendantNodes()
+        SyntaxNode root = tree.GetRoot();
+        VariableDeclarationSyntax variableDeclaration = root.DescendantNodes()
             .OfType<Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax>()
             .First();
 
@@ -43,7 +44,7 @@ class Test {{
     public void IfTemplate_ApplicableToBoolean()
     {
         var template = new IfTemplate();
-        var boolType = GetTypeSymbol("bool");
+        ITypeSymbol boolType = GetTypeSymbol("bool");
 
         Assert.IsTrue(template.IsApplicableToType(boolType));
     }
@@ -52,7 +53,7 @@ class Test {{
     public void IfTemplate_NotApplicableToString()
     {
         var template = new IfTemplate();
-        var stringType = GetTypeSymbol("string");
+        ITypeSymbol stringType = GetTypeSymbol("string");
 
         Assert.IsFalse(template.IsApplicableToType(stringType));
     }
@@ -61,7 +62,7 @@ class Test {{
     public void IfTemplate_NotApplicableToInt()
     {
         var template = new IfTemplate();
-        var intType = GetTypeSymbol("int");
+        ITypeSymbol intType = GetTypeSymbol("int");
 
         Assert.IsFalse(template.IsApplicableToType(intType));
     }
@@ -70,7 +71,7 @@ class Test {{
     public void NullTemplate_ApplicableToString()
     {
         var template = new NullTemplate();
-        var stringType = GetTypeSymbol("string");
+        ITypeSymbol stringType = GetTypeSymbol("string");
 
         Assert.IsTrue(template.IsApplicableToType(stringType));
     }
@@ -79,7 +80,7 @@ class Test {{
     public void NullTemplate_NotApplicableToBoolean()
     {
         var template = new NullTemplate();
-        var boolType = GetTypeSymbol("bool");
+        ITypeSymbol boolType = GetTypeSymbol("bool");
 
         Assert.IsFalse(template.IsApplicableToType(boolType));
     }
@@ -88,7 +89,7 @@ class Test {{
     public void NullTemplate_NotApplicableToInt()
     {
         var template = new NullTemplate();
-        var intType = GetTypeSymbol("int");
+        ITypeSymbol intType = GetTypeSymbol("int");
 
         Assert.IsFalse(template.IsApplicableToType(intType));
     }
@@ -97,7 +98,7 @@ class Test {{
     public void NullTemplate_ApplicableToNullableInt()
     {
         var template = new NullTemplate();
-        var nullableIntType = GetTypeSymbol("int?");
+        ITypeSymbol nullableIntType = GetTypeSymbol("int?");
 
         Assert.IsTrue(template.IsApplicableToType(nullableIntType));
     }
@@ -106,7 +107,7 @@ class Test {{
     public void ForEachTemplate_NotApplicableToBoolean()
     {
         var template = new ForEachTemplate();
-        var boolType = GetTypeSymbol("bool");
+        ITypeSymbol boolType = GetTypeSymbol("bool");
 
         Assert.IsFalse(template.IsApplicableToType(boolType));
     }
@@ -115,7 +116,7 @@ class Test {{
     public void ForEachTemplate_NotApplicableToInt()
     {
         var template = new ForEachTemplate();
-        var intType = GetTypeSymbol("int");
+        ITypeSymbol intType = GetTypeSymbol("int");
 
         Assert.IsFalse(template.IsApplicableToType(intType));
     }
@@ -124,7 +125,7 @@ class Test {{
     public void VarTemplate_ApplicableToBoolean()
     {
         var template = new VarTemplate();
-        var boolType = GetTypeSymbol("bool");
+        ITypeSymbol boolType = GetTypeSymbol("bool");
 
         Assert.IsTrue(template.IsApplicableToType(boolType));
     }
@@ -133,7 +134,7 @@ class Test {{
     public void VarTemplate_ApplicableToString()
     {
         var template = new VarTemplate();
-        var stringType = GetTypeSymbol("string");
+        ITypeSymbol stringType = GetTypeSymbol("string");
 
         Assert.IsTrue(template.IsApplicableToType(stringType));
     }
@@ -142,7 +143,7 @@ class Test {{
     public void VarTemplate_ApplicableToInt()
     {
         var template = new VarTemplate();
-        var intType = GetTypeSymbol("int");
+        ITypeSymbol intType = GetTypeSymbol("int");
 
         Assert.IsTrue(template.IsApplicableToType(intType));
     }
@@ -151,9 +152,9 @@ class Test {{
     public void ReturnTemplate_ApplicableToAny()
     {
         var template = new ReturnTemplate();
-        var boolType = GetTypeSymbol("bool");
-        var stringType = GetTypeSymbol("string");
-        var intType = GetTypeSymbol("int");
+        ITypeSymbol boolType = GetTypeSymbol("bool");
+        ITypeSymbol stringType = GetTypeSymbol("string");
+        ITypeSymbol intType = GetTypeSymbol("int");
 
         Assert.IsTrue(template.IsApplicableToType(boolType));
         Assert.IsTrue(template.IsApplicableToType(stringType));
@@ -164,7 +165,7 @@ class Test {{
     public void AllTemplates_ApplicableWhenTypeIsNull()
     {
         // When we can't determine the type, templates should still show
-        foreach (var template in PostfixTemplate.All)
+        foreach (PostfixTemplate? template in PostfixTemplate.All)
         {
             Assert.IsTrue(template.IsApplicableToType(null), $"Template '{template.Name}' should be applicable when type is null");
         }
@@ -173,7 +174,7 @@ class Test {{
     [TestMethod]
     public void AllTemplates_HaveSuffix()
     {
-        foreach (var template in PostfixTemplate.All)
+        foreach (PostfixTemplate? template in PostfixTemplate.All)
         {
             Assert.IsFalse(string.IsNullOrEmpty(template.Suffix), $"Template '{template.Name}' should have a suffix");
         }
