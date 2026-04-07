@@ -14,7 +14,7 @@ namespace PostfixTemplates.Templates
 
         public override string GetTransformedText(string expression, string indent)
         {
-            bool needsParentheses = expression.Contains(" ") || expression.Contains("&&") || expression.Contains("||") || expression.Contains("==") || expression.Contains("!=") || expression.Contains("<") || expression.Contains(">");
+            var needsParentheses = expression.Contains(" ") || expression.Contains("&&") || expression.Contains("||") || expression.Contains("==") || expression.Contains("!=") || expression.Contains("<") || expression.Contains(">");
 
             if (needsParentheses)
             {

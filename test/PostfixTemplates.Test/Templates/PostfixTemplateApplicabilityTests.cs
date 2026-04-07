@@ -20,6 +20,10 @@ public class PostfixTemplateApplicabilityTests
     private static ITypeSymbol GetTypeSymbol(string typeName)
     {
         var code = $@"
+using System;
+using System.IO;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 class Test {{
     void Method() {{
         {typeName} x = default;
@@ -29,6 +33,8 @@ class Test {{
         CSharpCompilation compilation = CSharpCompilation.Create("Test")
             .AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
             .AddReferences(MetadataReference.CreateFromFile(typeof(System.Collections.Generic.List<>).Assembly.Location))
+            .AddReferences(MetadataReference.CreateFromFile(typeof(System.IO.StreamReader).Assembly.Location))
+            .AddReferences(MetadataReference.CreateFromFile(typeof(System.Threading.Tasks.Task).Assembly.Location))
             .AddSyntaxTrees(tree);
         SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
@@ -40,339 +46,749 @@ class Test {{
         return semanticModel.GetTypeInfo(variableDeclaration.Type).Type;
     }
 
+    // ===================================================================
+    // Type symbol helpers for the applicability matrix
+    // ===================================================================
+    private static ITypeSymbol BoolType => GetTypeSymbol("bool");
+    private static ITypeSymbol IntType => GetTypeSymbol("int");
+    private static ITypeSymbol StringType => GetTypeSymbol("string");
+    private static ITypeSymbol ArrayType => GetTypeSymbol("int[]");
+    private static ITypeSymbol ListType => GetTypeSymbol("List<int>");
+    private static ITypeSymbol ExceptionType => GetTypeSymbol("Exception");
+    private static ITypeSymbol ArgumentExceptionType => GetTypeSymbol("ArgumentException");
+    private static ITypeSymbol TaskType => GetTypeSymbol("Task");
+    private static ITypeSymbol StreamReaderType => GetTypeSymbol("StreamReader");
+    private static ITypeSymbol NullableIntType => GetTypeSymbol("int?");
+
+    // ===================================================================
+    // IfTemplate - Boolean only
+    // ===================================================================
     [TestMethod]
     public void IfTemplate_ApplicableToBoolean()
     {
         var template = new IfTemplate();
-        ITypeSymbol boolType = GetTypeSymbol("bool");
-
-        Assert.IsTrue(template.IsApplicableToType(boolType));
+        Assert.IsTrue(template.IsApplicableToType(BoolType));
     }
 
     [TestMethod]
     public void IfTemplate_NotApplicableToString()
     {
         var template = new IfTemplate();
-        ITypeSymbol stringType = GetTypeSymbol("string");
-
-        Assert.IsFalse(template.IsApplicableToType(stringType));
+        Assert.IsFalse(template.IsApplicableToType(StringType));
     }
 
     [TestMethod]
     public void IfTemplate_NotApplicableToInt()
     {
         var template = new IfTemplate();
-        ITypeSymbol intType = GetTypeSymbol("int");
-
-        Assert.IsFalse(template.IsApplicableToType(intType));
+        Assert.IsFalse(template.IsApplicableToType(IntType));
     }
 
     [TestMethod]
-    public void NullTemplate_ApplicableToString()
+    public void IfTemplate_NotApplicableToArray()
     {
-        var template = new NullTemplate();
-        ITypeSymbol stringType = GetTypeSymbol("string");
-
-        Assert.IsTrue(template.IsApplicableToType(stringType));
+        var template = new IfTemplate();
+        Assert.IsFalse(template.IsApplicableToType(ArrayType));
     }
 
     [TestMethod]
-    public void NullTemplate_NotApplicableToBoolean()
+    public void IfTemplate_NotApplicableToException()
     {
-        var template = new NullTemplate();
-        ITypeSymbol boolType = GetTypeSymbol("bool");
-
-        Assert.IsFalse(template.IsApplicableToType(boolType));
+        var template = new IfTemplate();
+        Assert.IsFalse(template.IsApplicableToType(ExceptionType));
     }
 
     [TestMethod]
-    public void NullTemplate_NotApplicableToInt()
+    public void IfTemplate_NotApplicableToTask()
     {
-        var template = new NullTemplate();
-        ITypeSymbol intType = GetTypeSymbol("int");
+        var template = new IfTemplate();
+        Assert.IsFalse(template.IsApplicableToType(TaskType));
+    }
 
-        Assert.IsFalse(template.IsApplicableToType(intType));
+    // ===================================================================
+    // ElseTemplate - Boolean only
+    // ===================================================================
+    [TestMethod]
+    public void ElseTemplate_ApplicableToBoolean()
+    {
+        var template = new ElseTemplate();
+        Assert.IsTrue(template.IsApplicableToType(BoolType));
     }
 
     [TestMethod]
-    public void NullTemplate_ApplicableToNullableInt()
+    public void ElseTemplate_NotApplicableToString()
     {
-        var template = new NullTemplate();
-        ITypeSymbol nullableIntType = GetTypeSymbol("int?");
-
-        Assert.IsTrue(template.IsApplicableToType(nullableIntType));
+        var template = new ElseTemplate();
+        Assert.IsFalse(template.IsApplicableToType(StringType));
     }
 
     [TestMethod]
-    public void ForEachTemplate_NotApplicableToBoolean()
+    public void ElseTemplate_NotApplicableToInt()
     {
-        var template = new ForEachTemplate();
-        ITypeSymbol boolType = GetTypeSymbol("bool");
-
-        Assert.IsFalse(template.IsApplicableToType(boolType));
+        var template = new ElseTemplate();
+        Assert.IsFalse(template.IsApplicableToType(IntType));
     }
 
     [TestMethod]
-    public void ForEachTemplate_NotApplicableToInt()
+    public void ElseTemplate_NotApplicableToArray()
     {
-        var template = new ForEachTemplate();
-        ITypeSymbol intType = GetTypeSymbol("int");
+        var template = new ElseTemplate();
+        Assert.IsFalse(template.IsApplicableToType(ArrayType));
+    }
 
-        Assert.IsFalse(template.IsApplicableToType(intType));
+    // ===================================================================
+    // NotTemplate - Boolean only
+    // ===================================================================
+    [TestMethod]
+    public void NotTemplate_ApplicableToBoolean()
+    {
+        var template = new NotTemplate();
+        Assert.IsTrue(template.IsApplicableToType(BoolType));
     }
 
     [TestMethod]
-    public void VarTemplate_ApplicableToBoolean()
+    public void NotTemplate_NotApplicableToString()
     {
-        var template = new VarTemplate();
-        ITypeSymbol boolType = GetTypeSymbol("bool");
-
-        Assert.IsTrue(template.IsApplicableToType(boolType));
+        var template = new NotTemplate();
+        Assert.IsFalse(template.IsApplicableToType(StringType));
     }
 
     [TestMethod]
-    public void VarTemplate_ApplicableToString()
+    public void NotTemplate_NotApplicableToInt()
     {
-        var template = new VarTemplate();
-        ITypeSymbol stringType = GetTypeSymbol("string");
-
-        Assert.IsTrue(template.IsApplicableToType(stringType));
+        var template = new NotTemplate();
+        Assert.IsFalse(template.IsApplicableToType(IntType));
     }
 
     [TestMethod]
-    public void VarTemplate_ApplicableToInt()
+    public void NotTemplate_NotApplicableToTask()
     {
-        var template = new VarTemplate();
-        ITypeSymbol intType = GetTypeSymbol("int");
-
-        Assert.IsTrue(template.IsApplicableToType(intType));
+        var template = new NotTemplate();
+        Assert.IsFalse(template.IsApplicableToType(TaskType));
     }
 
-    [TestMethod]
-    public void ReturnTemplate_ApplicableToAny()
-    {
-        var template = new ReturnTemplate();
-        ITypeSymbol boolType = GetTypeSymbol("bool");
-        ITypeSymbol stringType = GetTypeSymbol("string");
-        ITypeSymbol intType = GetTypeSymbol("int");
-
-        Assert.IsTrue(template.IsApplicableToType(boolType));
-        Assert.IsTrue(template.IsApplicableToType(stringType));
-        Assert.IsTrue(template.IsApplicableToType(intType));
-    }
-
-    [TestMethod]
-    public void ForEachTemplate_ApplicableToArray()
-    {
-        var template = new ForEachTemplate();
-        ITypeSymbol arrayType = GetTypeSymbol("int[]");
-
-        Assert.IsTrue(template.IsApplicableToType(arrayType));
-    }
-
-    [TestMethod]
-    public void ForEachTemplate_ApplicableToListOfT()
-    {
-        var template = new ForEachTemplate();
-        ITypeSymbol listType = GetTypeSymbol("System.Collections.Generic.List<int>");
-
-        Assert.IsTrue(template.IsApplicableToType(listType));
-    }
-
-    [TestMethod]
-    public void ForEachTemplate_ApplicableToString()
-    {
-        var template = new ForEachTemplate();
-        ITypeSymbol stringType = GetTypeSymbol("string");
-
-        Assert.IsTrue(template.IsApplicableToType(stringType));
-    }
-
-    [TestMethod]
-    public void ThrowTemplate_ApplicableToException()
-    {
-        var template = new ThrowTemplate();
-        ITypeSymbol exceptionType = GetTypeSymbol("System.Exception");
-
-        Assert.IsTrue(template.IsApplicableToType(exceptionType));
-    }
-
-    [TestMethod]
-    public void ThrowTemplate_ApplicableToDerivedExceptionType()
-    {
-        var template = new ThrowTemplate();
-        ITypeSymbol argumentExceptionType = GetTypeSymbol("System.ArgumentException");
-
-        Assert.IsTrue(template.IsApplicableToType(argumentExceptionType));
-    }
-
-    [TestMethod]
-    public void ThrowTemplate_NotApplicableToString()
-    {
-        var template = new ThrowTemplate();
-        ITypeSymbol stringType = GetTypeSymbol("string");
-
-        Assert.IsFalse(template.IsApplicableToType(stringType));
-    }
-
-    [TestMethod]
-    public void ThrowTemplate_NotApplicableToInt()
-    {
-        var template = new ThrowTemplate();
-        ITypeSymbol intType = GetTypeSymbol("int");
-
-        Assert.IsFalse(template.IsApplicableToType(intType));
-    }
-
+    // ===================================================================
+    // WhileTemplate - Boolean only
+    // ===================================================================
     [TestMethod]
     public void WhileTemplate_ApplicableToBoolean()
     {
         var template = new WhileTemplate();
-        ITypeSymbol boolType = GetTypeSymbol("bool");
-
-        Assert.IsTrue(template.IsApplicableToType(boolType));
+        Assert.IsTrue(template.IsApplicableToType(BoolType));
     }
 
     [TestMethod]
     public void WhileTemplate_NotApplicableToInt()
     {
         var template = new WhileTemplate();
-        ITypeSymbol intType = GetTypeSymbol("int");
-
-        Assert.IsFalse(template.IsApplicableToType(intType));
+        Assert.IsFalse(template.IsApplicableToType(IntType));
     }
 
+    [TestMethod]
+    public void WhileTemplate_NotApplicableToString()
+    {
+        var template = new WhileTemplate();
+        Assert.IsFalse(template.IsApplicableToType(StringType));
+    }
+
+    [TestMethod]
+    public void WhileTemplate_NotApplicableToArray()
+    {
+        var template = new WhileTemplate();
+        Assert.IsFalse(template.IsApplicableToType(ArrayType));
+    }
+
+    // ===================================================================
+    // NullTemplate - Nullable (reference types + Nullable<T>)
+    // ===================================================================
+    [TestMethod]
+    public void NullTemplate_ApplicableToString()
+    {
+        var template = new NullTemplate();
+        Assert.IsTrue(template.IsApplicableToType(StringType));
+    }
+
+    [TestMethod]
+    public void NullTemplate_ApplicableToNullableInt()
+    {
+        var template = new NullTemplate();
+        Assert.IsTrue(template.IsApplicableToType(NullableIntType));
+    }
+
+    [TestMethod]
+    public void NullTemplate_ApplicableToException()
+    {
+        var template = new NullTemplate();
+        Assert.IsTrue(template.IsApplicableToType(ExceptionType));
+    }
+
+    [TestMethod]
+    public void NullTemplate_NotApplicableToBoolean()
+    {
+        var template = new NullTemplate();
+        Assert.IsFalse(template.IsApplicableToType(BoolType));
+    }
+
+    [TestMethod]
+    public void NullTemplate_NotApplicableToInt()
+    {
+        var template = new NullTemplate();
+        Assert.IsFalse(template.IsApplicableToType(IntType));
+    }
+
+    // ===================================================================
+    // NotNullTemplate - Nullable (reference types + Nullable<T>)
+    // ===================================================================
+    [TestMethod]
+    public void NotNullTemplate_ApplicableToString()
+    {
+        var template = new NotNullTemplate();
+        Assert.IsTrue(template.IsApplicableToType(StringType));
+    }
+
+    [TestMethod]
+    public void NotNullTemplate_ApplicableToNullableInt()
+    {
+        var template = new NotNullTemplate();
+        Assert.IsTrue(template.IsApplicableToType(NullableIntType));
+    }
+
+    [TestMethod]
+    public void NotNullTemplate_NotApplicableToBoolean()
+    {
+        var template = new NotNullTemplate();
+        Assert.IsFalse(template.IsApplicableToType(BoolType));
+    }
+
+    [TestMethod]
+    public void NotNullTemplate_NotApplicableToInt()
+    {
+        var template = new NotNullTemplate();
+        Assert.IsFalse(template.IsApplicableToType(IntType));
+    }
+
+    // ===================================================================
+    // ForEachTemplate - Enumerable only
+    // ===================================================================
+    [TestMethod]
+    public void ForEachTemplate_ApplicableToArray()
+    {
+        var template = new ForEachTemplate();
+        Assert.IsTrue(template.IsApplicableToType(ArrayType));
+    }
+
+    [TestMethod]
+    public void ForEachTemplate_ApplicableToListOfT()
+    {
+        var template = new ForEachTemplate();
+        Assert.IsTrue(template.IsApplicableToType(ListType));
+    }
+
+    [TestMethod]
+    public void ForEachTemplate_ApplicableToString()
+    {
+        // string implements IEnumerable<char>
+        var template = new ForEachTemplate();
+        Assert.IsTrue(template.IsApplicableToType(StringType));
+    }
+
+    [TestMethod]
+    public void ForEachTemplate_NotApplicableToBoolean()
+    {
+        var template = new ForEachTemplate();
+        Assert.IsFalse(template.IsApplicableToType(BoolType));
+    }
+
+    [TestMethod]
+    public void ForEachTemplate_NotApplicableToInt()
+    {
+        var template = new ForEachTemplate();
+        Assert.IsFalse(template.IsApplicableToType(IntType));
+    }
+
+    [TestMethod]
+    public void ForEachTemplate_NotApplicableToException()
+    {
+        var template = new ForEachTemplate();
+        Assert.IsFalse(template.IsApplicableToType(ExceptionType));
+    }
+
+    [TestMethod]
+    public void ForEachTemplate_NotApplicableToTask()
+    {
+        var template = new ForEachTemplate();
+        Assert.IsFalse(template.IsApplicableToType(TaskType));
+    }
+
+    // ===================================================================
+    // ForTemplate - Enumerable only
+    // ===================================================================
     [TestMethod]
     public void ForTemplate_ApplicableToArray()
     {
         var template = new ForTemplate();
-        ITypeSymbol arrayType = GetTypeSymbol("int[]");
+        Assert.IsTrue(template.IsApplicableToType(ArrayType));
+    }
 
-        Assert.IsTrue(template.IsApplicableToType(arrayType));
+    [TestMethod]
+    public void ForTemplate_ApplicableToList()
+    {
+        var template = new ForTemplate();
+        Assert.IsTrue(template.IsApplicableToType(ListType));
     }
 
     [TestMethod]
     public void ForTemplate_NotApplicableToInt()
     {
         var template = new ForTemplate();
-        ITypeSymbol intType = GetTypeSymbol("int");
-
-        Assert.IsFalse(template.IsApplicableToType(intType));
+        Assert.IsFalse(template.IsApplicableToType(IntType));
     }
 
+    [TestMethod]
+    public void ForTemplate_NotApplicableToBoolean()
+    {
+        var template = new ForTemplate();
+        Assert.IsFalse(template.IsApplicableToType(BoolType));
+    }
+
+    [TestMethod]
+    public void ForTemplate_NotApplicableToException()
+    {
+        var template = new ForTemplate();
+        Assert.IsFalse(template.IsApplicableToType(ExceptionType));
+    }
+
+    // ===================================================================
+    // ForRTemplate - Enumerable only
+    // ===================================================================
     [TestMethod]
     public void ForRTemplate_ApplicableToArray()
     {
         var template = new ForRTemplate();
-        ITypeSymbol arrayType = GetTypeSymbol("int[]");
+        Assert.IsTrue(template.IsApplicableToType(ArrayType));
+    }
 
-        Assert.IsTrue(template.IsApplicableToType(arrayType));
+    [TestMethod]
+    public void ForRTemplate_ApplicableToList()
+    {
+        var template = new ForRTemplate();
+        Assert.IsTrue(template.IsApplicableToType(ListType));
     }
 
     [TestMethod]
     public void ForRTemplate_NotApplicableToInt()
     {
         var template = new ForRTemplate();
-        ITypeSymbol intType = GetTypeSymbol("int");
-
-        Assert.IsFalse(template.IsApplicableToType(intType));
+        Assert.IsFalse(template.IsApplicableToType(IntType));
     }
 
     [TestMethod]
-    public void SwitchTemplate_ApplicableToBoolean()
+    public void ForRTemplate_NotApplicableToBoolean()
     {
-        var template = new SwitchTemplate();
-        ITypeSymbol boolType = GetTypeSymbol("bool");
+        var template = new ForRTemplate();
+        Assert.IsFalse(template.IsApplicableToType(BoolType));
+    }
 
-        Assert.IsTrue(template.IsApplicableToType(boolType));
+    // ===================================================================
+    // ThrowTemplate - Exception only
+    // ===================================================================
+    [TestMethod]
+    public void ThrowTemplate_ApplicableToException()
+    {
+        var template = new ThrowTemplate();
+        Assert.IsTrue(template.IsApplicableToType(ExceptionType));
     }
 
     [TestMethod]
-    public void SwitchTemplate_ApplicableToString()
+    public void ThrowTemplate_ApplicableToDerivedExceptionType()
     {
-        var template = new SwitchTemplate();
-        ITypeSymbol stringType = GetTypeSymbol("string");
-
-        Assert.IsTrue(template.IsApplicableToType(stringType));
+        var template = new ThrowTemplate();
+        Assert.IsTrue(template.IsApplicableToType(ArgumentExceptionType));
     }
 
     [TestMethod]
-    public void LockTemplate_ApplicableToString()
+    public void ThrowTemplate_NotApplicableToString()
     {
-        var template = new LockTemplate();
-        ITypeSymbol stringType = GetTypeSymbol("string");
-
-        Assert.IsTrue(template.IsApplicableToType(stringType));
+        var template = new ThrowTemplate();
+        Assert.IsFalse(template.IsApplicableToType(StringType));
     }
 
     [TestMethod]
-    public void LockTemplate_NotApplicableToInt()
+    public void ThrowTemplate_NotApplicableToInt()
     {
-        var template = new LockTemplate();
-        ITypeSymbol intType = GetTypeSymbol("int");
-
-        Assert.IsFalse(template.IsApplicableToType(intType));
+        var template = new ThrowTemplate();
+        Assert.IsFalse(template.IsApplicableToType(IntType));
     }
 
     [TestMethod]
-    public void UsingTemplate_ApplicableToDisposableType()
+    public void ThrowTemplate_NotApplicableToBoolean()
     {
-        var template = new UsingTemplate();
-        ITypeSymbol streamType = GetTypeSymbol("System.IO.StreamReader");
-
-        Assert.IsTrue(template.IsApplicableToType(streamType));
+        var template = new ThrowTemplate();
+        Assert.IsFalse(template.IsApplicableToType(BoolType));
     }
 
     [TestMethod]
-    public void UsingTemplate_NotApplicableToString()
+    public void ThrowTemplate_NotApplicableToArray()
     {
-        var template = new UsingTemplate();
-        ITypeSymbol stringType = GetTypeSymbol("string");
-
-        Assert.IsFalse(template.IsApplicableToType(stringType));
+        var template = new ThrowTemplate();
+        Assert.IsFalse(template.IsApplicableToType(ArrayType));
     }
 
     [TestMethod]
-    public void UsingTemplate_NotApplicableToList()
+    public void ThrowTemplate_NotApplicableToTask()
     {
-        var template = new UsingTemplate();
-        ITypeSymbol listType = GetTypeSymbol("System.Collections.Generic.List<int>");
-
-        Assert.IsFalse(template.IsApplicableToType(listType));
+        var template = new ThrowTemplate();
+        Assert.IsFalse(template.IsApplicableToType(TaskType));
     }
 
+    // ===================================================================
+    // AwaitTemplate - Awaitable only
+    // ===================================================================
     [TestMethod]
     public void AwaitTemplate_ApplicableToTask()
     {
         var template = new AwaitTemplate();
-        ITypeSymbol taskType = GetTypeSymbol("System.Threading.Tasks.Task");
-
-        Assert.IsTrue(template.IsApplicableToType(taskType));
+        Assert.IsTrue(template.IsApplicableToType(TaskType));
     }
 
     [TestMethod]
     public void AwaitTemplate_NotApplicableToString()
     {
         var template = new AwaitTemplate();
-        ITypeSymbol stringType = GetTypeSymbol("string");
-
-        Assert.IsFalse(template.IsApplicableToType(stringType));
+        Assert.IsFalse(template.IsApplicableToType(StringType));
     }
 
     [TestMethod]
     public void AwaitTemplate_NotApplicableToList()
     {
         var template = new AwaitTemplate();
-        ITypeSymbol listType = GetTypeSymbol("System.Collections.Generic.List<int>");
-
-        Assert.IsFalse(template.IsApplicableToType(listType));
+        Assert.IsFalse(template.IsApplicableToType(ListType));
     }
 
+    [TestMethod]
+    public void AwaitTemplate_NotApplicableToInt()
+    {
+        var template = new AwaitTemplate();
+        Assert.IsFalse(template.IsApplicableToType(IntType));
+    }
+
+    [TestMethod]
+    public void AwaitTemplate_NotApplicableToBoolean()
+    {
+        var template = new AwaitTemplate();
+        Assert.IsFalse(template.IsApplicableToType(BoolType));
+    }
+
+    [TestMethod]
+    public void AwaitTemplate_NotApplicableToException()
+    {
+        var template = new AwaitTemplate();
+        Assert.IsFalse(template.IsApplicableToType(ExceptionType));
+    }
+
+    // ===================================================================
+    // UsingTemplate - Disposable only
+    // ===================================================================
+    [TestMethod]
+    public void UsingTemplate_ApplicableToDisposableType()
+    {
+        var template = new UsingTemplate();
+        Assert.IsTrue(template.IsApplicableToType(StreamReaderType));
+    }
+
+    [TestMethod]
+    public void UsingTemplate_NotApplicableToString()
+    {
+        var template = new UsingTemplate();
+        Assert.IsFalse(template.IsApplicableToType(StringType));
+    }
+
+    [TestMethod]
+    public void UsingTemplate_NotApplicableToList()
+    {
+        var template = new UsingTemplate();
+        Assert.IsFalse(template.IsApplicableToType(ListType));
+    }
+
+    [TestMethod]
+    public void UsingTemplate_NotApplicableToInt()
+    {
+        var template = new UsingTemplate();
+        Assert.IsFalse(template.IsApplicableToType(IntType));
+    }
+
+    [TestMethod]
+    public void UsingTemplate_NotApplicableToBoolean()
+    {
+        var template = new UsingTemplate();
+        Assert.IsFalse(template.IsApplicableToType(BoolType));
+    }
+
+    [TestMethod]
+    public void UsingTemplate_NotApplicableToException()
+    {
+        var template = new UsingTemplate();
+        Assert.IsFalse(template.IsApplicableToType(ExceptionType));
+    }
+
+    // ===================================================================
+    // LockTemplate - ReferenceType only
+    // ===================================================================
+    [TestMethod]
+    public void LockTemplate_ApplicableToString()
+    {
+        var template = new LockTemplate();
+        Assert.IsTrue(template.IsApplicableToType(StringType));
+    }
+
+    [TestMethod]
+    public void LockTemplate_ApplicableToList()
+    {
+        var template = new LockTemplate();
+        Assert.IsTrue(template.IsApplicableToType(ListType));
+    }
+
+    [TestMethod]
+    public void LockTemplate_ApplicableToException()
+    {
+        var template = new LockTemplate();
+        Assert.IsTrue(template.IsApplicableToType(ExceptionType));
+    }
+
+    [TestMethod]
+    public void LockTemplate_NotApplicableToInt()
+    {
+        var template = new LockTemplate();
+        Assert.IsFalse(template.IsApplicableToType(IntType));
+    }
+
+    [TestMethod]
+    public void LockTemplate_NotApplicableToBoolean()
+    {
+        var template = new LockTemplate();
+        Assert.IsFalse(template.IsApplicableToType(BoolType));
+    }
+
+    [TestMethod]
+    public void LockTemplate_NotApplicableToNullableInt()
+    {
+        var template = new LockTemplate();
+        Assert.IsFalse(template.IsApplicableToType(NullableIntType));
+    }
+
+    // ===================================================================
+    // ParseTemplate - String only
+    // ===================================================================
+    [TestMethod]
+    public void ParseTemplate_ApplicableToString()
+    {
+        var template = new ParseTemplate();
+        Assert.IsTrue(template.IsApplicableToType(StringType));
+    }
+
+    [TestMethod]
+    public void ParseTemplate_NotApplicableToInt()
+    {
+        var template = new ParseTemplate();
+        Assert.IsFalse(template.IsApplicableToType(IntType));
+    }
+
+    [TestMethod]
+    public void ParseTemplate_NotApplicableToList()
+    {
+        var template = new ParseTemplate();
+        Assert.IsFalse(template.IsApplicableToType(ListType));
+    }
+
+    [TestMethod]
+    public void ParseTemplate_NotApplicableToBoolean()
+    {
+        var template = new ParseTemplate();
+        Assert.IsFalse(template.IsApplicableToType(BoolType));
+    }
+
+    // ===================================================================
+    // TryParseTemplate - String only
+    // ===================================================================
+    [TestMethod]
+    public void TryParseTemplate_ApplicableToString()
+    {
+        var template = new TryParseTemplate();
+        Assert.IsTrue(template.IsApplicableToType(StringType));
+    }
+
+    [TestMethod]
+    public void TryParseTemplate_NotApplicableToInt()
+    {
+        var template = new TryParseTemplate();
+        Assert.IsFalse(template.IsApplicableToType(IntType));
+    }
+
+    [TestMethod]
+    public void TryParseTemplate_NotApplicableToBoolean()
+    {
+        var template = new TryParseTemplate();
+        Assert.IsFalse(template.IsApplicableToType(BoolType));
+    }
+
+    [TestMethod]
+    public void TryParseTemplate_NotApplicableToArray()
+    {
+        var template = new TryParseTemplate();
+        Assert.IsFalse(template.IsApplicableToType(ArrayType));
+    }
+
+    // ===================================================================
+    // Any-type templates: arg, cast, field, par, prop, return, switch, to, var
+    // These should apply to every type
+    // ===================================================================
+    [TestMethod]
+    public void ReturnTemplate_ApplicableToAny()
+    {
+        var template = new ReturnTemplate();
+        Assert.IsTrue(template.IsApplicableToType(BoolType));
+        Assert.IsTrue(template.IsApplicableToType(StringType));
+        Assert.IsTrue(template.IsApplicableToType(IntType));
+        Assert.IsTrue(template.IsApplicableToType(ArrayType));
+        Assert.IsTrue(template.IsApplicableToType(ExceptionType));
+        Assert.IsTrue(template.IsApplicableToType(TaskType));
+    }
+
+    [TestMethod]
+    public void VarTemplate_ApplicableToBoolean()
+    {
+        var template = new VarTemplate();
+        Assert.IsTrue(template.IsApplicableToType(BoolType));
+    }
+
+    [TestMethod]
+    public void VarTemplate_ApplicableToString()
+    {
+        var template = new VarTemplate();
+        Assert.IsTrue(template.IsApplicableToType(StringType));
+    }
+
+    [TestMethod]
+    public void VarTemplate_ApplicableToInt()
+    {
+        var template = new VarTemplate();
+        Assert.IsTrue(template.IsApplicableToType(IntType));
+    }
+
+    [TestMethod]
+    public void ArgTemplate_ApplicableToAny()
+    {
+        var template = new ArgTemplate();
+        Assert.IsTrue(template.IsApplicableToType(BoolType));
+        Assert.IsTrue(template.IsApplicableToType(IntType));
+        Assert.IsTrue(template.IsApplicableToType(StringType));
+        Assert.IsTrue(template.IsApplicableToType(ArrayType));
+        Assert.IsTrue(template.IsApplicableToType(ExceptionType));
+    }
+
+    [TestMethod]
+    public void CastTemplate_ApplicableToAny()
+    {
+        var template = new CastTemplate();
+        Assert.IsTrue(template.IsApplicableToType(BoolType));
+        Assert.IsTrue(template.IsApplicableToType(IntType));
+        Assert.IsTrue(template.IsApplicableToType(StringType));
+        Assert.IsTrue(template.IsApplicableToType(ArrayType));
+    }
+
+    [TestMethod]
+    public void FieldTemplate_ApplicableToAny()
+    {
+        var template = new FieldTemplate();
+        Assert.IsTrue(template.IsApplicableToType(BoolType));
+        Assert.IsTrue(template.IsApplicableToType(IntType));
+        Assert.IsTrue(template.IsApplicableToType(StringType));
+    }
+
+    [TestMethod]
+    public void ParTemplate_ApplicableToAny()
+    {
+        var template = new ParTemplate();
+        Assert.IsTrue(template.IsApplicableToType(BoolType));
+        Assert.IsTrue(template.IsApplicableToType(IntType));
+        Assert.IsTrue(template.IsApplicableToType(StringType));
+    }
+
+    [TestMethod]
+    public void PropTemplate_ApplicableToAny()
+    {
+        var template = new PropTemplate();
+        Assert.IsTrue(template.IsApplicableToType(BoolType));
+        Assert.IsTrue(template.IsApplicableToType(IntType));
+        Assert.IsTrue(template.IsApplicableToType(StringType));
+    }
+
+    [TestMethod]
+    public void SwitchTemplate_ApplicableToBoolean()
+    {
+        var template = new SwitchTemplate();
+        Assert.IsTrue(template.IsApplicableToType(BoolType));
+    }
+
+    [TestMethod]
+    public void SwitchTemplate_ApplicableToString()
+    {
+        var template = new SwitchTemplate();
+        Assert.IsTrue(template.IsApplicableToType(StringType));
+    }
+
+    [TestMethod]
+    public void SwitchTemplate_ApplicableToInt()
+    {
+        var template = new SwitchTemplate();
+        Assert.IsTrue(template.IsApplicableToType(IntType));
+    }
+
+    [TestMethod]
+    public void ToTemplate_ApplicableToAny()
+    {
+        var template = new ToTemplate();
+        Assert.IsTrue(template.IsApplicableToType(BoolType));
+        Assert.IsTrue(template.IsApplicableToType(IntType));
+        Assert.IsTrue(template.IsApplicableToType(StringType));
+    }
+
+    // Type-only templates: new, typeof, inject
+    [TestMethod]
+    public void NewTemplate_ApplicableToAny()
+    {
+        var template = new NewTemplate();
+        Assert.IsTrue(template.IsApplicableToType(BoolType));
+        Assert.IsTrue(template.IsApplicableToType(StringType));
+        Assert.IsTrue(template.IsApplicableToType(IntType));
+    }
+
+    [TestMethod]
+    public void TypeofTemplate_ApplicableToAny()
+    {
+        var template = new TypeofTemplate();
+        Assert.IsTrue(template.IsApplicableToType(BoolType));
+        Assert.IsTrue(template.IsApplicableToType(StringType));
+        Assert.IsTrue(template.IsApplicableToType(IntType));
+    }
+
+    [TestMethod]
+    public void InjectTemplate_ApplicableToAny()
+    {
+        var template = new InjectTemplate();
+        Assert.IsTrue(template.IsApplicableToType(BoolType));
+        Assert.IsTrue(template.IsApplicableToType(StringType));
+        Assert.IsTrue(template.IsApplicableToType(IntType));
+    }
+
+    // ===================================================================
+    // Null-type fallback: all templates show when type is unknown
+    // ===================================================================
     [TestMethod]
     public void AllTemplates_ApplicableWhenTypeIsNull()
     {
         // When we can't determine the type, templates should still show
-        foreach (PostfixTemplate? template in PostfixTemplate.All)
+        foreach (PostfixTemplate template in PostfixTemplate.All)
         {
             Assert.IsTrue(template.IsApplicableToType(null), $"Template '{template.Name}' should be applicable when type is null");
         }
@@ -381,12 +797,15 @@ class Test {{
     [TestMethod]
     public void AllTemplates_HaveSuffix()
     {
-        foreach (PostfixTemplate? template in PostfixTemplate.All)
+        foreach (PostfixTemplate template in PostfixTemplate.All)
         {
             Assert.IsFalse(string.IsNullOrEmpty(template.Suffix), $"Template '{template.Name}' should have a suffix");
         }
     }
 
+    // ===================================================================
+    // RequiresValueExpression flag
+    // ===================================================================
     [TestMethod]
     public void RequiresValueExpression_TrueByDefault()
     {
@@ -406,57 +825,16 @@ class Test {{
         Assert.IsFalse(new TypeofTemplate().RequiresValueExpression);
     }
 
+    // ===================================================================
+    // YieldTemplate - Any type, but requires iterator context
+    // ===================================================================
     [TestMethod]
-    public void ParseTemplate_ApplicableToString()
+    public void YieldTemplate_ApplicableToAny()
     {
-        var template = new ParseTemplate();
-        ITypeSymbol stringType = GetTypeSymbol("string");
-
-        Assert.IsTrue(template.IsApplicableToType(stringType));
-    }
-
-    [TestMethod]
-    public void ParseTemplate_NotApplicableToInt()
-    {
-        var template = new ParseTemplate();
-        ITypeSymbol intType = GetTypeSymbol("int");
-
-        Assert.IsFalse(template.IsApplicableToType(intType));
-    }
-
-    [TestMethod]
-    public void ParseTemplate_NotApplicableToList()
-    {
-        var template = new ParseTemplate();
-        ITypeSymbol listType = GetTypeSymbol("System.Collections.Generic.List<int>");
-
-        Assert.IsFalse(template.IsApplicableToType(listType));
-    }
-
-    [TestMethod]
-    public void TryParseTemplate_ApplicableToString()
-    {
-        var template = new TryParseTemplate();
-        ITypeSymbol stringType = GetTypeSymbol("string");
-
-        Assert.IsTrue(template.IsApplicableToType(stringType));
-    }
-
-    [TestMethod]
-    public void TryParseTemplate_NotApplicableToInt()
-    {
-        var template = new TryParseTemplate();
-        ITypeSymbol intType = GetTypeSymbol("int");
-
-        Assert.IsFalse(template.IsApplicableToType(intType));
-    }
-
-    [TestMethod]
-    public void LockTemplate_ApplicableToList()
-    {
-        var template = new LockTemplate();
-        ITypeSymbol listType = GetTypeSymbol("System.Collections.Generic.List<int>");
-
-        Assert.IsTrue(template.IsApplicableToType(listType));
+        var template = new YieldTemplate();
+        Assert.IsTrue(template.IsApplicableToType(BoolType));
+        Assert.IsTrue(template.IsApplicableToType(IntType));
+        Assert.IsTrue(template.IsApplicableToType(StringType));
+        Assert.IsTrue(template.IsApplicableToType(ArrayType));
     }
 }

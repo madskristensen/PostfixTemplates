@@ -7,25 +7,17 @@ namespace PostfixTemplates.Completion
 {
     internal static class RoslynExpressionHelper
     {
-        internal sealed class ExpressionResult
+        internal sealed class ExpressionResult(string text, int spanStart, int spanEnd, ExpressionSyntax expressionNode = null)
         {
-            public ExpressionResult(string text, int spanStart, int spanEnd, ExpressionSyntax expressionNode = null)
-            {
-                Text = text;
-                SpanStart = spanStart;
-                SpanEnd = spanEnd;
-                ExpressionNode = expressionNode;
-            }
-
-            public string Text { get; }
-            public int SpanStart { get; }
-            public int SpanEnd { get; }
+            public string Text { get; } = text;
+            public int SpanStart { get; } = spanStart;
+            public int SpanEnd { get; } = spanEnd;
 
             /// <summary>
             /// The syntax node for the expression. Can be used to get type information
             /// from a semantic model.
             /// </summary>
-            public ExpressionSyntax ExpressionNode { get; }
+            public ExpressionSyntax ExpressionNode { get; } = expressionNode;
 
             /// <summary>
             /// Whether the expression refers to a type rather than a value (e.g. <c>ExecutionContext.</c>).
@@ -71,7 +63,7 @@ namespace PostfixTemplates.Completion
                     return new ExpressionResult(text, span.Start, span.End, expression);
                 }
 
-                if (node is ExpressionSyntax exprSyntax && !(node.Parent is MemberAccessExpressionSyntax))
+                if (node is ExpressionSyntax exprSyntax && node.Parent is not MemberAccessExpressionSyntax)
                 {
                     TextSpan exprSpan = exprSyntax.Span;
                     var exprText = exprSyntax.ToString();
@@ -86,6 +78,111 @@ namespace PostfixTemplates.Completion
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Determines whether the given position is inside an async method or lambda.
+        /// </summary>
+        public static bool IsInAsyncContext(SyntaxTree tree, int position)
+        {
+            if (tree == null)
+            {
+                return false;
+            }
+
+            SyntaxNode root = tree.GetRoot();
+            SyntaxNode node = root.FindToken(position).Parent;
+
+            while (node != null)
+            {
+                if (node is MethodDeclarationSyntax method)
+                {
+                    return method.Modifiers.Any(SyntaxKind.AsyncKeyword);
+                }
+
+                if (node is LocalFunctionStatementSyntax localFunction)
+                {
+                    return localFunction.Modifiers.Any(SyntaxKind.AsyncKeyword);
+                }
+
+                if (node is ParenthesizedLambdaExpressionSyntax parenLambda)
+                {
+                    return parenLambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword);
+                }
+
+                if (node is SimpleLambdaExpressionSyntax simpleLambda)
+                {
+                    return simpleLambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword);
+                }
+
+                if (node is AnonymousMethodExpressionSyntax anonymousMethod)
+                {
+                    return anonymousMethod.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword);
+                }
+
+                node = node.Parent;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Determines whether the given position is inside a method that returns an
+        /// iterator type (IEnumerable, IEnumerable&lt;T&gt;, IEnumerator, IEnumerator&lt;T&gt;).
+        /// </summary>
+        public static bool IsInIteratorContext(SyntaxTree tree, int position, SemanticModel semanticModel)
+        {
+            if (tree == null)
+            {
+                return false;
+            }
+
+            SyntaxNode root = tree.GetRoot();
+            SyntaxNode node = root.FindToken(position).Parent;
+
+            while (node != null)
+            {
+                if (node is MethodDeclarationSyntax method)
+                {
+                    return IsIteratorReturnType(method.ReturnType, semanticModel);
+                }
+
+                if (node is LocalFunctionStatementSyntax localFunction)
+                {
+                    return IsIteratorReturnType(localFunction.ReturnType, semanticModel);
+                }
+
+                // Lambdas and anonymous methods cannot be iterators
+                if (node is LambdaExpressionSyntax || node is AnonymousMethodExpressionSyntax)
+                {
+                    return false;
+                }
+
+                node = node.Parent;
+            }
+
+            return false;
+        }
+
+        private static bool IsIteratorReturnType(TypeSyntax returnType, SemanticModel semanticModel)
+        {
+            if (returnType == null || semanticModel == null)
+            {
+                return false;
+            }
+
+            ITypeSymbol typeSymbol = semanticModel.GetTypeInfo(returnType).Type;
+
+            if (typeSymbol == null)
+            {
+                return false;
+            }
+
+            var name = typeSymbol.OriginalDefinition.ToDisplayString();
+            return name == "System.Collections.IEnumerable"
+                || name == "System.Collections.IEnumerator"
+                || name == "System.Collections.Generic.IEnumerable<T>"
+                || name == "System.Collections.Generic.IEnumerator<T>";
         }
     }
 }

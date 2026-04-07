@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -23,7 +22,7 @@ namespace PostfixTemplates.Completion
 {
     internal sealed class PostfixCompletionSource : IAsyncCompletionSource
     {
-        private static readonly ImageElement _icon = new ImageElement(KnownMonikers.Snippet.ToImageId(), "Postfix Template");
+        private static readonly ImageElement _icon = new(KnownMonikers.Snippet.ToImageId(), "Postfix Template");
 
         public CompletionStartData InitializeCompletion(VsCompletionTrigger trigger, SnapshotPoint triggerLocation, CancellationToken cancellationToken)
         {
@@ -142,6 +141,18 @@ namespace PostfixTemplates.Completion
                         continue;
                     }
 
+                    // Skip templates that require an async context when not in an async method/lambda
+                    if (template.RequiresAsyncContext && !RoslynExpressionHelper.IsInAsyncContext(tree, dotPosition))
+                    {
+                        continue;
+                    }
+
+                    // Skip templates that require an iterator context when not in an iterator method
+                    if (template.RequiresIteratorContext && !RoslynExpressionHelper.IsInIteratorContext(tree, dotPosition, semanticModel))
+                    {
+                        continue;
+                    }
+
                     var item = new VsCompletionItem(template.Name, this, _icon, ImmutableArray<CompletionFilter>.Empty, template.Suffix);
                     item.Properties.AddProperty("PostfixTemplate", template.Name);
                     item.Properties.AddProperty("ExpressionText", expressionResult.Text);
@@ -182,7 +193,7 @@ namespace PostfixTemplates.Completion
             var lineText = line.GetText();
             var positionInLine = triggerLocation.Position - line.Start.Position;
 
-            for (int i = positionInLine - 1; i >= 0; i--)
+            for (var i = positionInLine - 1; i >= 0; i--)
             {
                 if (lineText[i] == '.')
                 {
