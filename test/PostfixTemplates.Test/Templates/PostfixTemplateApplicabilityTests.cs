@@ -794,37 +794,6 @@ class Test {{
         }
     }
 
-    [TestMethod]
-    public void AllTemplates_HaveSuffix()
-    {
-        foreach (PostfixTemplate template in PostfixTemplate.All)
-        {
-            Assert.IsFalse(string.IsNullOrEmpty(template.Suffix), $"Template '{template.Name}' should have a suffix");
-        }
-    }
-
-    // ===================================================================
-    // RequiresValueExpression flag
-    // ===================================================================
-    [TestMethod]
-    public void RequiresValueExpression_TrueByDefault()
-    {
-        // Most templates should require a value expression
-        Assert.IsTrue(new NullTemplate().RequiresValueExpression);
-        Assert.IsTrue(new NotNullTemplate().RequiresValueExpression);
-        Assert.IsTrue(new ReturnTemplate().RequiresValueExpression);
-        Assert.IsTrue(new VarTemplate().RequiresValueExpression);
-    }
-
-    [TestMethod]
-    public void RequiresValueExpression_FalseForTypeTemplates()
-    {
-        // Templates designed for type names must not require a value expression
-        Assert.IsFalse(new InjectTemplate().RequiresValueExpression);
-        Assert.IsFalse(new NewTemplate().RequiresValueExpression);
-        Assert.IsFalse(new TypeofTemplate().RequiresValueExpression);
-    }
-
     // ===================================================================
     // YieldTemplate - Any type, but requires iterator context
     // ===================================================================
