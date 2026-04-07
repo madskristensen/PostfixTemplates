@@ -49,22 +49,34 @@
     <Compile Include="PostfixTemplatesPackage.cs" />
     <Compile Include="Options\General.cs" />
     <Compile Include="Templates\ArgTemplate.cs" />
+    <Compile Include="Templates\AssertTemplate.cs" />
+    <Compile Include="Templates\AsTemplate.cs" />
     <Compile Include="Templates\AwaitTemplate.cs" />
     <Compile Include="Templates\CastTemplate.cs" />
+    <Compile Include="Templates\ConditionalTemplate.cs" />
+    <Compile Include="Templates\DiscardTemplate.cs" />
     <Compile Include="Templates\FieldTemplate.cs" />
     <Compile Include="Templates\ForRTemplate.cs" />
     <Compile Include="Templates\ForTemplate.cs" />
     <Compile Include="Templates\InjectTemplate.cs" />
+    <Compile Include="Templates\IsTemplate.cs" />
+    <Compile Include="Templates\LambdaTemplate.cs" />
     <Compile Include="Templates\LockTemplate.cs" />
+    <Compile Include="Templates\NameofTemplate.cs" />
     <Compile Include="Templates\NewTemplate.cs" />
+    <Compile Include="Templates\NotEmptyTemplate.cs" />
+    <Compile Include="Templates\NotWhitespaceTemplate.cs" />
     <Compile Include="Templates\ParseTemplate.cs" />
     <Compile Include="Templates\ParTemplate.cs" />
     <Compile Include="Templates\PostfixTemplate.cs" />
     <Compile Include="Templates\IfTemplate.cs" />
     <Compile Include="Templates\ElseTemplate.cs" />
     <Compile Include="Templates\PropTemplate.cs" />
+    <Compile Include="Templates\SwitchExprTemplate.cs" />
     <Compile Include="Templates\SwitchTemplate.cs" />
+    <Compile Include="Templates\ThrowIfNullTemplate.cs" />
     <Compile Include="Templates\ToTemplate.cs" />
+    <Compile Include="Templates\TryCatchTemplate.cs" />
     <Compile Include="Templates\TryParseTemplate.cs" />
     <Compile Include="Templates\TypeofTemplate.cs" />
     <Compile Include="Templates\UsingTemplate.cs" />
@@ -86,6 +98,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>source.extension.vsixmanifest</DependentUpon>
     </Compile>
+    <Compile Include="Templates\WriteLineTemplate.cs" />
     <Compile Include="Templates\YieldTemplate.cs" />
     <Compile Include="VSCommandTable.cs">
       <AutoGen>True</AutoGen>

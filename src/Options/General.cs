@@ -181,6 +181,84 @@ namespace PostfixTemplates
         [DefaultValue(true)]
         public bool EnableYield { get; set; } = true;
 
+        [Category("Templates")]
+        [DisplayName("Enable '.writeline'")]
+        [Description("Writes expression to console output")]
+        [DefaultValue(true)]
+        public bool EnableWriteLine { get; set; } = true;
+
+        [Category("Templates")]
+        [DisplayName("Enable '.assert'")]
+        [Description("Asserts boolean expression with Debug.Assert")]
+        [DefaultValue(true)]
+        public bool EnableAssert { get; set; } = true;
+
+        [Category("Templates")]
+        [DisplayName("Enable '.is'")]
+        [Description("Checks expression type with pattern matching")]
+        [DefaultValue(true)]
+        public bool EnableIs { get; set; } = true;
+
+        [Category("Templates")]
+        [DisplayName("Enable '.as'")]
+        [Description("Casts expression using safe 'as' operator")]
+        [DefaultValue(true)]
+        public bool EnableAs { get; set; } = true;
+
+        [Category("Templates")]
+        [DisplayName("Enable '.switchexpr'")]
+        [Description("Produces switch expression")]
+        [DefaultValue(true)]
+        public bool EnableSwitchExpr { get; set; } = true;
+
+        [Category("Templates")]
+        [DisplayName("Enable '.discard'")]
+        [Description("Discards expression result")]
+        [DefaultValue(true)]
+        public bool EnableDiscard { get; set; } = true;
+
+        [Category("Templates")]
+        [DisplayName("Enable '.nameof'")]
+        [Description("Wraps expression with nameof()")]
+        [DefaultValue(true)]
+        public bool EnableNameof { get; set; } = true;
+
+        [Category("Templates")]
+        [DisplayName("Enable '.lambda'")]
+        [Description("Wraps expression in a lambda")]
+        [DefaultValue(true)]
+        public bool EnableLambda { get; set; } = true;
+
+        [Category("Templates")]
+        [DisplayName("Enable '.conditional'")]
+        [Description("Wraps expression with ternary conditional operator")]
+        [DefaultValue(true)]
+        public bool EnableConditional { get; set; } = true;
+
+        [Category("Templates")]
+        [DisplayName("Enable '.trycatch'")]
+        [Description("Wraps expression with try/catch block")]
+        [DefaultValue(true)]
+        public bool EnableTryCatch { get; set; } = true;
+
+        [Category("Templates")]
+        [DisplayName("Enable '.throwifnull'")]
+        [Description("Throws if expression is null")]
+        [DefaultValue(true)]
+        public bool EnableThrowIfNull { get; set; } = true;
+
+        [Category("Templates")]
+        [DisplayName("Enable '.notempty'")]
+        [Description("Checks if string is null or empty")]
+        [DefaultValue(true)]
+        public bool EnableNotEmpty { get; set; } = true;
+
+        [Category("Templates")]
+        [DisplayName("Enable '.notwhitespace'")]
+        [Description("Checks if string is null or whitespace")]
+        [DefaultValue(true)]
+        public bool EnableNotWhitespace { get; set; } = true;
+
         public bool IsTemplateEnabled(string templateName)
         {
             return templateName switch
@@ -213,6 +291,19 @@ namespace PostfixTemplates
                 "typeof" => EnableTypeof,
                 "using" => EnableUsing,
                 "yield" => EnableYield,
+                "writeline" => EnableWriteLine,
+                "assert" => EnableAssert,
+                "is" => EnableIs,
+                "as" => EnableAs,
+                "switchexpr" => EnableSwitchExpr,
+                "discard" => EnableDiscard,
+                "nameof" => EnableNameof,
+                "lambda" => EnableLambda,
+                "conditional" => EnableConditional,
+                "trycatch" => EnableTryCatch,
+                "throwifnull" => EnableThrowIfNull,
+                "notempty" => EnableNotEmpty,
+                "notwhitespace" => EnableNotWhitespace,
                 _ => false
             };
         }

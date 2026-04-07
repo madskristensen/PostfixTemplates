@@ -6,9 +6,9 @@ namespace PostfixTemplates.Test.Templates;
 public class PostfixTemplateRegistryTests
 {
     [TestMethod]
-    public void All_ContainsExactly28Templates()
+    public void All_ContainsExactly41Templates()
     {
-        Assert.HasCount(28, PostfixTemplate.All);
+        Assert.HasCount(41, PostfixTemplate.All);
     }
 
     [TestMethod]
