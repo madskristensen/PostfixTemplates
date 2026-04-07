@@ -12,7 +12,7 @@ namespace PostfixTemplates.Templates
 
         public override string Suffix => "lock";
 
-        public override ExpressionType ApplicableTypes => ExpressionType.Any;
+        public override ExpressionType ApplicableTypes => ExpressionType.ReferenceType;
 
         public override string GetTransformedText(string expression, string indent)
         {

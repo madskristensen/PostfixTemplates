@@ -10,7 +10,9 @@ namespace PostfixTemplates.Templates
 
         public override string Suffix => "await";
 
-        public override ExpressionType ApplicableTypes => ExpressionType.Any;
+        public override ExpressionType ApplicableTypes => ExpressionType.Awaitable;
+
+        public override bool RequiresAsyncContext => true;
 
         public override string GetTransformedText(string expression, string indent)
         {

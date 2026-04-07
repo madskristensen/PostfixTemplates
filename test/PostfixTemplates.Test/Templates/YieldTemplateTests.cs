@@ -46,4 +46,16 @@ public class YieldTemplateTests
 
         Assert.AreEqual(resultA, resultB, "YieldTemplate output should not depend on indent");
     }
+
+    [TestMethod]
+    public void RequiresIteratorContext_ReturnsTrue()
+    {
+        Assert.IsTrue(_template.RequiresIteratorContext);
+    }
+
+    [TestMethod]
+    public void RequiresAsyncContext_ReturnsFalse()
+    {
+        Assert.IsFalse(_template.RequiresAsyncContext);
+    }
 }

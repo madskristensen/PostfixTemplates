@@ -41,4 +41,14 @@ public class ForRTemplateTests
         var expected = $"for (var i = list.Length - 1; i >= 0; i--){Environment.NewLine}        {{{Environment.NewLine}            {Environment.NewLine}        }}";
         Assert.AreEqual(expected, result);
     }
+    [TestMethod]
+    public void GetTransformedText_NonArrayEnumerable_UsesLengthNotCount()
+    {
+        // ForRTemplate uses .Length in the generated condition even for List<T>,
+        // which has .Count not .Length. This documents the current behavior.
+        var result = _template.GetTransformedText("myList", "    ");
+
+        var expected = $"for (var i = myList.Length - 1; i >= 0; i--){Environment.NewLine}    {{{Environment.NewLine}        {Environment.NewLine}    }}";
+        Assert.AreEqual(expected, result);
+    }
 }

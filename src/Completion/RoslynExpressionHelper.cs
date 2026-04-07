@@ -26,6 +26,12 @@ namespace PostfixTemplates.Completion
             /// from a semantic model.
             /// </summary>
             public ExpressionSyntax ExpressionNode { get; }
+
+            /// <summary>
+            /// Whether the expression refers to a type rather than a value (e.g. <c>ExecutionContext.</c>).
+            /// Set after resolving symbols via the semantic model.
+            /// </summary>
+            public bool IsTypeExpression { get; set; }
         }
 
         public static ExpressionResult FindExpressionBeforeDot(SyntaxTree tree, int dotPosition)

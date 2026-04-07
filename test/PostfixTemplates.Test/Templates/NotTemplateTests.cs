@@ -79,6 +79,16 @@ public class NotTemplateTests
     }
 
     [TestMethod]
+    public void GetTransformedText_GenericTypeName_WithParentheses()
+    {
+        // The '<' and '>' in a generic type name trigger the parenthesization heuristic,
+        // so "List<int>" is wrapped even though it is not a comparison expression.
+        var result = _template.GetTransformedText("List<int>", "    ");
+
+        Assert.AreEqual("!(List<int>)", result);
+    }
+
+    [TestMethod]
     public void GetTransformedText_IndentIsIgnored()
     {
         var resultA = _template.GetTransformedText("flag", "    ");

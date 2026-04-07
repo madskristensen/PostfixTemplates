@@ -6,6 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Imaging;
@@ -93,12 +95,36 @@ namespace PostfixTemplates.Completion
                 {
                     TypeInfo typeInfo = semanticModel.GetTypeInfo(expressionResult.ExpressionNode, cancellationToken);
                     expressionType = typeInfo.Type;
+
+                    // Detect whether the expression is a type reference (e.g. ExecutionContext.)
+                    // rather than a value. GetTypeInfo returns null for a type expression;
+                    // GetSymbolInfo resolves it to an ITypeSymbol instead.
+                    if (expressionType == null)
+                    {
+                        SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(expressionResult.ExpressionNode, cancellationToken);
+                        expressionResult.IsTypeExpression = symbolInfo.Symbol is ITypeSymbol;
+                    }
                 }
 
                 General settings = await General.GetLiveInstanceAsync();
 
                 // Get existing completion items from Roslyn to avoid duplicates
                 HashSet<string> existingItemNames = await GetExistingCompletionItemNamesAsync(document, triggerLocation.Position, cancellationToken);
+
+                // Determine enclosing method context for async/iterator checks
+                bool? isAsyncContext = null;
+                bool? isIteratorContext = null;
+
+                if (expressionResult.ExpressionNode != null)
+                {
+                    SyntaxNode enclosingMethod = FindEnclosingMethodOrLambda(expressionResult.ExpressionNode);
+
+                    if (enclosingMethod != null)
+                    {
+                        isAsyncContext = HasAsyncModifier(enclosingMethod);
+                        isIteratorContext = IsIteratorMethod(enclosingMethod, semanticModel, cancellationToken);
+                    }
+                }
 
                 ImmutableArray<VsCompletionItem>.Builder items = ImmutableArray.CreateBuilder<VsCompletionItem>();
 
@@ -117,6 +143,30 @@ namespace PostfixTemplates.Completion
 
                     // Skip if the template doesn't apply to this expression type
                     if (!template.IsApplicableToType(expressionType))
+                    {
+                        continue;
+                    }
+
+                    // Skip value-expression-only templates when the expression is a type reference
+                    if (expressionResult.IsTypeExpression && template.RequiresValueExpression)
+                    {
+                        continue;
+                    }
+
+                    // Skip type-only templates when the expression is a value (not a type reference)
+                    if (!expressionResult.IsTypeExpression && !template.RequiresValueExpression)
+                    {
+                        continue;
+                    }
+
+                    // Skip templates that require an async context
+                    if (template.RequiresAsyncContext && isAsyncContext == false)
+                    {
+                        continue;
+                    }
+
+                    // Skip templates that require an iterator context
+                    if (template.RequiresIteratorContext && isIteratorContext == false)
                     {
                         continue;
                     }
@@ -213,6 +263,104 @@ namespace PostfixTemplates.Completion
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Walks up the syntax tree from the given node to find the enclosing method,
+        /// local function, or lambda expression.
+        /// </summary>
+        private static SyntaxNode FindEnclosingMethodOrLambda(SyntaxNode node)
+        {
+            SyntaxNode current = node.Parent;
+
+            while (current != null)
+            {
+                if (current is MethodDeclarationSyntax ||
+                    current is LocalFunctionStatementSyntax ||
+                    current is LambdaExpressionSyntax ||
+                    current is AnonymousMethodExpressionSyntax)
+                {
+                    return current;
+                }
+
+                current = current.Parent;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns whether the given method or lambda node has the <c>async</c> modifier.
+        /// </summary>
+        private static bool HasAsyncModifier(SyntaxNode node)
+        {
+            SyntaxTokenList modifiers;
+
+            switch (node)
+            {
+                case MethodDeclarationSyntax method:
+                    modifiers = method.Modifiers;
+                    break;
+                case LocalFunctionStatementSyntax localFunction:
+                    modifiers = localFunction.Modifiers;
+                    break;
+                case ParenthesizedLambdaExpressionSyntax lambda:
+                    modifiers = lambda.Modifiers;
+                    break;
+                case SimpleLambdaExpressionSyntax simpleLambda:
+                    modifiers = simpleLambda.Modifiers;
+                    break;
+                case AnonymousMethodExpressionSyntax anonymousMethod:
+                    modifiers = anonymousMethod.Modifiers;
+                    break;
+                default:
+                    return false;
+            }
+
+            return modifiers.Any(SyntaxKind.AsyncKeyword);
+        }
+
+        /// <summary>
+        /// Returns whether the given method node returns an iterator type
+        /// (<c>IEnumerable</c>, <c>IEnumerable&lt;T&gt;</c>, <c>IEnumerator</c>,
+        /// or <c>IEnumerator&lt;T&gt;</c>).
+        /// Lambdas and anonymous methods cannot be iterators.
+        /// </summary>
+        private static bool IsIteratorMethod(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            TypeSyntax returnType = null;
+
+            switch (node)
+            {
+                case MethodDeclarationSyntax method:
+                    returnType = method.ReturnType;
+                    break;
+                case LocalFunctionStatementSyntax localFunction:
+                    returnType = localFunction.ReturnType;
+                    break;
+                default:
+                    // Lambdas and anonymous methods cannot be iterators
+                    return false;
+            }
+
+            if (returnType == null || semanticModel == null)
+            {
+                return false;
+            }
+
+            ITypeSymbol typeSymbol = semanticModel.GetTypeInfo(returnType, cancellationToken).Type;
+
+            if (typeSymbol == null)
+            {
+                return false;
+            }
+
+            string typeName = typeSymbol.OriginalDefinition.ToDisplayString();
+
+            return typeName == "System.Collections.Generic.IEnumerable<T>" ||
+                   typeName == "System.Collections.IEnumerable" ||
+                   typeName == "System.Collections.Generic.IEnumerator<T>" ||
+                   typeName == "System.Collections.IEnumerator";
         }
     }
 }

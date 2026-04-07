@@ -10,7 +10,7 @@ namespace PostfixTemplates.Templates
 
         public override string Suffix => "parse";
 
-        public override ExpressionType ApplicableTypes => ExpressionType.Any;
+        public override ExpressionType ApplicableTypes => ExpressionType.String;
 
         public override string GetTransformedText(string expression, string indent)
         {

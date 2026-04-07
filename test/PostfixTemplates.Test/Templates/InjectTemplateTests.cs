@@ -31,11 +31,15 @@ public class InjectTemplateTests
     }
 
     [TestMethod]
-    public void GetTransformedText_IndentIsIgnored()
+    public void GetTransformedText_ParameterNameIsAlwaysDependency()
     {
-        var resultA = _template.GetTransformedText("IService", "    ");
-        var resultB = _template.GetTransformedText("IService", "        ");
+        // The parameter name is always "dependency" regardless of the type name convention.
+        var resultA = _template.GetTransformedText("IMyServiceImpl", "    ");
+        var resultB = _template.GetTransformedText("MyRepository", "    ");
+        var resultC = _template.GetTransformedText("ILogger", "    ");
 
-        Assert.AreEqual(resultA, resultB, "InjectTemplate output should not depend on indent");
+        Assert.AreEqual("(IMyServiceImpl dependency)", resultA);
+        Assert.AreEqual("(MyRepository dependency)", resultB);
+        Assert.AreEqual("(ILogger dependency)", resultC);
     }
 }

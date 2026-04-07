@@ -12,7 +12,7 @@ namespace PostfixTemplates.Templates
 
         public override string Suffix => "using";
 
-        public override ExpressionType ApplicableTypes => ExpressionType.Any;
+        public override ExpressionType ApplicableTypes => ExpressionType.Disposable;
 
         public override string GetTransformedText(string expression, string indent)
         {

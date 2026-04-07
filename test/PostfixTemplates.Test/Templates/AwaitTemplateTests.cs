@@ -46,4 +46,16 @@ public class AwaitTemplateTests
 
         Assert.AreEqual(resultA, resultB, "AwaitTemplate output should not depend on indent");
     }
+
+    [TestMethod]
+    public void RequiresAsyncContext_ReturnsTrue()
+    {
+        Assert.IsTrue(_template.RequiresAsyncContext);
+    }
+
+    [TestMethod]
+    public void RequiresIteratorContext_ReturnsFalse()
+    {
+        Assert.IsFalse(_template.RequiresIteratorContext);
+    }
 }

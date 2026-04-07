@@ -14,6 +14,10 @@ namespace PostfixTemplates.Templates
         Nullable = 2,
         Enumerable = 4,
         Exception = 8,
+        Disposable = 32,
+        Awaitable = 64,
+        String = 128,
+        ReferenceType = 256,
         Any = 16
     }
 
@@ -32,6 +36,28 @@ namespace PostfixTemplates.Templates
         /// Specifies what expression types this template applies to.
         /// </summary>
         public abstract ExpressionType ApplicableTypes { get; }
+
+        /// <summary>
+        /// When <see langword="true"/> (the default), the template only applies to value
+        /// expressions and will be hidden when the expression resolves to a type symbol
+        /// (e.g. <c>ExecutionContext.</c>).
+        /// Override and return <see langword="false"/> for templates that are specifically
+        /// designed to operate on a type name, such as <c>new</c>, <c>typeof</c>, or <c>inject</c>.
+        /// </summary>
+        public virtual bool RequiresValueExpression => true;
+
+        /// <summary>
+        /// When <see langword="true"/>, the template is only shown when the enclosing
+        /// method or lambda has the <c>async</c> modifier (e.g. for <c>await</c>).
+        /// </summary>
+        public virtual bool RequiresAsyncContext => false;
+
+        /// <summary>
+        /// When <see langword="true"/>, the template is only shown when the enclosing
+        /// method returns an iterator type such as <c>IEnumerable</c> or <c>IEnumerator</c>
+        /// (e.g. for <c>yield return</c>).
+        /// </summary>
+        public virtual bool RequiresIteratorContext => false;
 
         public abstract string GetTransformedText(string expression, string indent);
 
@@ -87,6 +113,38 @@ namespace PostfixTemplates.Templates
                 }
             }
 
+            if (ApplicableTypes.HasFlag(ExpressionType.Disposable))
+            {
+                if (IsDisposable(typeSymbol))
+                {
+                    return true;
+                }
+            }
+
+            if (ApplicableTypes.HasFlag(ExpressionType.Awaitable))
+            {
+                if (IsAwaitable(typeSymbol))
+                {
+                    return true;
+                }
+            }
+
+            if (ApplicableTypes.HasFlag(ExpressionType.String))
+            {
+                if (typeSymbol.SpecialType == SpecialType.System_String)
+                {
+                    return true;
+                }
+            }
+
+            if (ApplicableTypes.HasFlag(ExpressionType.ReferenceType))
+            {
+                if (typeSymbol.IsReferenceType)
+                {
+                    return true;
+                }
+            }
+
             return false;
         }
 
@@ -136,6 +194,42 @@ namespace PostfixTemplates.Templates
             return false;
         }
 
+        private static bool IsDisposable(ITypeSymbol typeSymbol)
+        {
+            foreach (INamedTypeSymbol iface in typeSymbol.AllInterfaces)
+            {
+                if (iface.Name == "IDisposable" &&
+                    iface.ContainingNamespace?.ToDisplayString() == "System")
+                {
+                    return true;
+                }
+            }
+
+            if (typeSymbol is INamedTypeSymbol namedType &&
+                namedType.Name == "IDisposable" &&
+                namedType.ContainingNamespace?.ToDisplayString() == "System")
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsAwaitable(ITypeSymbol typeSymbol)
+        {
+            // A type is awaitable if it has a GetAwaiter() method accessible on it.
+            // This covers Task, Task<T>, ValueTask, ValueTask<T>, and any custom awaitables.
+            foreach (ISymbol member in typeSymbol.GetMembers("GetAwaiter"))
+            {
+                if (member is IMethodSymbol method && method.Parameters.Length == 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public static IReadOnlyList<PostfixTemplate> All { get; } =
         [
             new ArgTemplate(),
@@ -157,7 +251,6 @@ namespace PostfixTemplates.Templates
             new ParseTemplate(),
             new PropTemplate(),
             new ReturnTemplate(),
-            new SelTemplate(),
             new SwitchTemplate(),
             new ThrowTemplate(),
             new ToTemplate(),
