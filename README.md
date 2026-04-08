@@ -96,7 +96,7 @@ You can define your own postfix templates by placing a `.postfix.json` file in y
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/madskristensen/PostfixTemplates/master/postfix-template-schema.json",
+  "$schema": "https://raw.githubusercontent.com/madskristensen/PostfixTemplates/refs/heads/master/postfix-template-schema.json",
   "templates": [
     {
       "name": "log",
@@ -139,7 +139,7 @@ A `.postfix.json` for an ASP.NET Core project might look like:
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/madskristensen/PostfixTemplates/master/postfix-template-schema.json",
+  "$schema": "https://raw.githubusercontent.com/madskristensen/PostfixTemplates/refs/heads/master/postfix-template-schema.json",
   "templates": [
     {
       "name": "log",
