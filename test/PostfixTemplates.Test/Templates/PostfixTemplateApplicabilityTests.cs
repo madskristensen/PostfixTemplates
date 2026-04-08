@@ -43,7 +43,7 @@ class Test {{
             .OfType<Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax>()
             .First();
 
-        return semanticModel.GetTypeInfo(variableDeclaration.Type).Type;
+        return semanticModel.GetTypeInfo(variableDeclaration.Type).Type!;
     }
 
     // ===================================================================
