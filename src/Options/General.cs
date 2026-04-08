@@ -11,8 +11,12 @@ namespace PostfixTemplates
         }
     }
 
-    public class General : BaseOptionModel<General>
+    public class General : BaseOptionModel<General>, IRatingConfig
     {
+        [Browsable(false)]
+        public int RatingRequests { get; set; }
+
+
         // Control Flow
 
         [Category("Control Flow")]

@@ -6,6 +6,16 @@
     "internalName": "PostfixTemplates",
     "tags": [ "postfix", "templates", "completion", "intellisense", "csharp" ]
   },
+  "assetFiles": [
+    {
+      "pathOnDisk": "art/settings.png",
+      "targetPath": "art/settings.png"
+    },
+    {
+      "pathOnDisk": "art/writeline.png",
+      "targetPath": "art/writeline.png"
+    }
+  ],
   "overview": "README.md",
   "publisher": "MadsKristensen",
   "repo": "https://github.com/madskristensen/PostfixTemplates"

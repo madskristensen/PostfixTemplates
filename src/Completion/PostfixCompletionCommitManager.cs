@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -13,6 +12,7 @@ namespace PostfixTemplates.Completion
     {
         private static readonly char[] _commitCharacters = { '\t', '\n' };
         private readonly ITextView _textView;
+        private static RatingPrompt _ratingPrompt;
 
         public PostfixCompletionCommitManager(ITextView textView)
         {
@@ -101,6 +101,9 @@ namespace PostfixTemplates.Completion
                         _textView.Caret.MoveTo(selectionSpan.End);
                     }
                 }
+
+                _ratingPrompt ??= new("MadsKristensen.PostfixTemplates", Vsix.Name, General.Instance, 2);
+                _ratingPrompt?.RegisterSuccessfulUsage();
 
                 return CommitResult.Handled;
             }
