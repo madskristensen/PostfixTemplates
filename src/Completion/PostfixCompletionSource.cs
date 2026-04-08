@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Imaging;
@@ -105,8 +104,8 @@ namespace PostfixTemplates.Completion
 
                 General settings = await General.GetLiveInstanceAsync();
 
-                // Get existing completion items from Roslyn to avoid duplicates
-                HashSet<string> existingItemNames = await GetExistingCompletionItemNamesAsync(document, triggerLocation.Position, cancellationToken);
+                // Collect member names from the type to avoid duplicates with real members
+                HashSet<string> existingMemberNames = GetMemberNames(expressionType);
 
                 ImmutableArray<VsCompletionItem>.Builder items = ImmutableArray.CreateBuilder<VsCompletionItem>();
 
@@ -117,8 +116,8 @@ namespace PostfixTemplates.Completion
                         continue;
                     }
 
-                    // Skip if Roslyn already provides a completion item with the same name
-                    if (existingItemNames.Contains(template.Name))
+                    // Skip if the type already has a member with the same name
+                    if (existingMemberNames.Contains(template.Name))
                     {
                         continue;
                     }
@@ -142,13 +141,13 @@ namespace PostfixTemplates.Completion
                     }
 
                     // Skip templates that require an async context when not in an async method/lambda
-                    if (template.RequiresAsyncContext && !RoslynExpressionHelper.IsInAsyncContext(tree, dotPosition, cancellationToken))
+                    if (template.RequiresAsyncContext && !RoslynExpressionHelper.IsInAsyncContext(expressionResult.ExpressionNode))
                     {
                         continue;
                     }
 
                     // Skip templates that require an iterator context when not in an iterator method
-                    if (template.RequiresIteratorContext && !RoslynExpressionHelper.IsInIteratorContext(tree, dotPosition, semanticModel, cancellationToken))
+                    if (template.RequiresIteratorContext && !RoslynExpressionHelper.IsInIteratorContext(expressionResult.ExpressionNode, semanticModel))
                     {
                         continue;
                     }
@@ -165,7 +164,7 @@ namespace PostfixTemplates.Completion
                 // Add custom templates from .postfix.json
                 foreach (PostfixTemplate custom in CustomTemplateLoader.Templates)
                 {
-                    if (existingItemNames.Contains(custom.Name))
+                    if (existingMemberNames.Contains(custom.Name))
                     {
                         continue;
                     }
@@ -233,38 +232,32 @@ namespace PostfixTemplates.Completion
         }
 
         /// <summary>
-        /// Queries the Roslyn completion service to get the names of completion items
-        /// that would be provided at the current position. This allows us to avoid
-        /// showing duplicate items when VS already provides a built-in postfix template.
+        /// Collects member names from the expression's type and its base types so
+        /// we can skip postfix templates whose name collides with an actual member.
+        /// Much cheaper than invoking Roslyn's full completion pipeline.
         /// </summary>
-        private static async Task<HashSet<string>> GetExistingCompletionItemNamesAsync(Document document, int position, CancellationToken cancellationToken)
+        private static HashSet<string> GetMemberNames(ITypeSymbol typeSymbol)
         {
             var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            try
+            if (typeSymbol == null)
             {
-                var completionService = CompletionService.GetService(document);
-
-                if (completionService == null)
-                {
-                    return result;
-                }
-
-                CompletionList completions = await completionService.GetCompletionsAsync(document, position, cancellationToken: cancellationToken);
-
-                if (completions == null)
-                {
-                    return result;
-                }
-
-                foreach (Microsoft.CodeAnalysis.Completion.CompletionItem item in completions.Items)
-                {
-                    result.Add(item.DisplayText);
-                }
+                return result;
             }
-            catch (Exception ex)
+
+            ITypeSymbol current = typeSymbol;
+
+            while (current != null)
             {
-                await ex.LogAsync();
+                foreach (ISymbol member in current.GetMembers())
+                {
+                    if (!member.IsImplicitlyDeclared)
+                    {
+                        result.Add(member.Name);
+                    }
+                }
+
+                current = current.BaseType;
             }
 
             return result;

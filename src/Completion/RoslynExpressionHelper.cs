@@ -94,6 +94,15 @@ namespace PostfixTemplates.Completion
             SyntaxNode root = tree.GetRoot(cancellationToken);
             SyntaxNode node = root.FindToken(position).Parent;
 
+            return IsInAsyncContext(node);
+        }
+
+        /// <summary>
+        /// Determines whether the given syntax node is inside an async method or lambda.
+        /// Walks up the parent chain from the provided node.
+        /// </summary>
+        public static bool IsInAsyncContext(SyntaxNode node)
+        {
             while (node != null)
             {
                 if (node is MethodDeclarationSyntax method)
@@ -141,6 +150,15 @@ namespace PostfixTemplates.Completion
             SyntaxNode root = tree.GetRoot(cancellationToken);
             SyntaxNode node = root.FindToken(position).Parent;
 
+            return IsInIteratorContext(node, semanticModel);
+        }
+
+        /// <summary>
+        /// Determines whether the given syntax node is inside a method that returns an
+        /// iterator type. Walks up the parent chain from the provided node.
+        /// </summary>
+        public static bool IsInIteratorContext(SyntaxNode node, SemanticModel semanticModel)
+        {
             while (node != null)
             {
                 if (node is MethodDeclarationSyntax method)
@@ -179,11 +197,23 @@ namespace PostfixTemplates.Completion
                 return false;
             }
 
-            var name = typeSymbol.OriginalDefinition.ToDisplayString();
-            return name == "System.Collections.IEnumerable"
-                || name == "System.Collections.IEnumerator"
-                || name == "System.Collections.Generic.IEnumerable<T>"
-                || name == "System.Collections.Generic.IEnumerator<T>";
+            ITypeSymbol original = typeSymbol.OriginalDefinition;
+
+            // IEnumerable and IEnumerable<T> have dedicated SpecialType values
+            if (original.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T ||
+                original.SpecialType == SpecialType.System_Collections_IEnumerable)
+            {
+                return true;
+            }
+
+            // IEnumerator and IEnumerator<T> lack SpecialType values; compare by name and namespace
+            if (original.Name == "IEnumerator")
+            {
+                var ns = original.ContainingNamespace?.ToDisplayString();
+                return ns == "System.Collections" || ns == "System.Collections.Generic";
+            }
+
+            return false;
         }
     }
 }
