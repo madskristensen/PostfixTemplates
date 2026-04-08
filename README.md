@@ -14,7 +14,7 @@ or get the latest CI build from [Open VSIX Gallery][vsixgallery].
 
 Stop writing boilerplate. Type what you mean, then let the template finish the thought.
 
-<!-- TODO: Add an animated GIF here showing a postfix template in action (e.g. typing "isValid.if" and watching it expand). A short recording is the single most effective way to sell the extension at a glance. -->
+![Writeline](art/writeline.gif)
 
 Postfix Templates adds 40+ code completion shortcuts for C#. Type an expression, press `.`, and pick a template from IntelliSense to instantly transform it into a full statement or common pattern - no snippets to memorize, no extra keystrokes.
 
@@ -86,7 +86,7 @@ Templates are context-aware - they only appear when applicable to the expression
 
 Each template can be individually enabled or disabled from **Tools -> Options -> Postfix Templates -> General**. Turn off the ones you don't need to keep the completion list focused.
 
-<!-- TODO: Add a screenshot of the Tools > Options page showing the template toggles. -->
+![Settings](art/settings.png)
 
 ## Contribute
 
