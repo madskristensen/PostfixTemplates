@@ -9,12 +9,12 @@ namespace PostfixTemplates
     internal sealed partial class Vsix
     {
         public const string Id = "PostfixTemplates.795137a8-0309-4bd6-a308-e85db689b742";
-        public const string Name = "PostfixTemplates";
+        public const string Name = "Postfix Templates";
         public const string Description = @"Postfix code templates for C# - type an expression followed by .if, .var, .not and more to quickly transform it.";
         public const string Language = "en-US";
         public const string Version = "1.0";
         public const string Author = "Mads Kristensen";
-        public const string Tags = "";
+        public const string Tags = "snippet, snippets";
         public const bool IsPreview = false;
     }
 }
