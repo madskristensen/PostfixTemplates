@@ -12,8 +12,8 @@
       "targetPath": "art/settings.png"
     },
     {
-      "pathOnDisk": "art/writeline.png",
-      "targetPath": "art/writeline.png"
+      "pathOnDisk": "art/writeline.gif",
+      "targetPath": "art/writeline.gif"
     }
   ],
   "overview": "README.md",
