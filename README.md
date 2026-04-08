@@ -88,6 +88,84 @@ Each template can be individually enabled or disabled from **Tools -> Options ->
 
 ![Settings](art/settings.png)
 
+## Custom Templates
+
+You can define your own postfix templates by placing a `.postfix.json` file in your solution root directory (next to the `.sln` file). This lets teams share project-specific templates via source control.
+
+### File format
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/madskristensen/PostfixTemplates/master/postfix-template-schema.json",
+  "templates": [
+    {
+      "name": "log",
+      "description": "Logs expression with ILogger",
+      "body": "_logger.LogInformation({expr})",
+      "suffix": "logging",
+      "appliesTo": "any"
+    }
+  ]
+}
+```
+
+Each template object supports these properties:
+
+| Property | Required | Description |
+|----------|----------|-------------|
+| `name` | Yes | The trigger text shown in IntelliSense (e.g., `log`) |
+| `body` | Yes | The output text. Use `{expr}` as a placeholder for the original expression |
+| `description` | No | Description shown in the completion tooltip. Defaults to the name |
+| `suffix` | No | Short text shown to the right of the completion item. Defaults to `custom` |
+| `appliesTo` | No | Restricts when the template appears. Defaults to `any` |
+
+### Expression types for `appliesTo`
+
+| Value | Shows when |
+|-------|-----------|
+| `any` | Any expression (default) |
+| `boolean` | Boolean expressions |
+| `string` | String expressions |
+| `nullable` | Nullable or reference types |
+| `enumerable` | Collections and arrays |
+| `exception` | Exception types |
+| `disposable` | IDisposable types |
+| `awaitable` | Task and awaitable types |
+| `referenceType` | Reference types |
+
+### Example
+
+A `.postfix.json` for an ASP.NET Core project might look like:
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/madskristensen/PostfixTemplates/master/postfix-template-schema.json",
+  "templates": [
+    {
+      "name": "log",
+      "description": "Log with ILogger",
+      "body": "_logger.LogInformation({expr})",
+      "suffix": "logging"
+    },
+    {
+      "name": "ok",
+      "description": "Wrap in Ok result",
+      "body": "Ok({expr})",
+      "suffix": "action result"
+    },
+    {
+      "name": "tolist",
+      "description": "Convert to List",
+      "body": "{expr}.ToList()",
+      "suffix": "LINQ",
+      "appliesTo": "enumerable"
+    }
+  ]
+}
+```
+
+Templates are automatically reloaded when the file changes. Add the `$schema` property to get IntelliSense and validation while editing the file.
+
 ## Contribute
 
 Check out the [issue tracker](https://github.com/madskristensen/PostfixTemplates/issues) for ideas, bugs, and feature requests. Pull requests are welcome.

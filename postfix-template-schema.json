@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Postfix Templates",
+  "description": "Custom postfix template definitions for the Postfix Templates Visual Studio extension.",
+  "type": "object",
+  "properties": {
+    "templates": {
+      "type": "array",
+      "description": "An array of custom postfix template definitions.",
+      "items": {
+        "type": "object",
+        "description": "A single postfix template definition.",
+        "required": [ "name", "body" ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The trigger text shown in IntelliSense (e.g., 'log'). Must be unique.",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "description": "Description shown in the completion tooltip. Defaults to the name when omitted."
+          },
+          "body": {
+            "type": "string",
+            "description": "The output text. Use {expr} as a placeholder for the original expression.",
+            "minLength": 1
+          },
+          "suffix": {
+            "type": "string",
+            "description": "Short text displayed to the right of the completion item in the IntelliSense list. Defaults to 'custom' when omitted."
+          },
+          "appliesTo": {
+            "type": "string",
+            "description": "Restricts when the template appears based on the expression type. Defaults to 'any' when omitted.",
+            "enum": [
+              "any",
+              "boolean",
+              "string",
+              "nullable",
+              "enumerable",
+              "exception",
+              "disposable",
+              "awaitable",
+              "referenceType"
+            ],
+            "default": "any"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -62,7 +62,7 @@ namespace PostfixTemplates.Completion
                     return CommitResult.Unhandled;
                 }
 
-                if (!PostfixTemplate.ByName.TryGetValue(templateName, out PostfixTemplate template))
+                if (!PostfixTemplate.TryGetByName(templateName, out PostfixTemplate template))
                 {
                     return CommitResult.Unhandled;
                 }

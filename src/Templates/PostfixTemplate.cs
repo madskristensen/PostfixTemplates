@@ -305,8 +305,29 @@ namespace PostfixTemplates.Templates
 
         /// <summary>
         /// O(1) lookup by template name for use in commit and description paths.
+        /// Checks built-in templates first, then falls back to custom templates.
         /// </summary>
-        public static IReadOnlyDictionary<string, PostfixTemplate> ByName { get; } =
+        public static bool TryGetByName(string name, out PostfixTemplate template)
+        {
+            if (_builtInByName.TryGetValue(name, out template))
+            {
+                return true;
+            }
+
+            foreach (CustomTemplate custom in CustomTemplateLoader.Templates)
+            {
+                if (string.Equals(custom.Name, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    template = custom;
+                    return true;
+                }
+            }
+
+            template = null;
+            return false;
+        }
+
+        private static readonly IReadOnlyDictionary<string, PostfixTemplate> _builtInByName =
             All.ToDictionary(t => t.Name, StringComparer.OrdinalIgnoreCase);
     }
 }

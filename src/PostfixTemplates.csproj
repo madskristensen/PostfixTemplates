@@ -55,6 +55,8 @@
     <Compile Include="Templates\AwaitTemplate.cs" />
     <Compile Include="Templates\CastTemplate.cs" />
     <Compile Include="Templates\ConditionalTemplate.cs" />
+    <Compile Include="Templates\CustomTemplate.cs" />
+    <Compile Include="Templates\CustomTemplateLoader.cs" />
     <Compile Include="Templates\DiscardTemplate.cs" />
     <Compile Include="Templates\FieldTemplate.cs" />
     <Compile Include="Templates\ForRTemplate.cs" />

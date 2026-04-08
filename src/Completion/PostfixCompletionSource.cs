@@ -162,6 +162,33 @@ namespace PostfixTemplates.Completion
                     items.Add(item);
                 }
 
+                // Add custom templates from .postfix.json
+                foreach (PostfixTemplate custom in CustomTemplateLoader.Templates)
+                {
+                    if (existingItemNames.Contains(custom.Name))
+                    {
+                        continue;
+                    }
+
+                    if (!custom.IsApplicableToType(expressionType))
+                    {
+                        continue;
+                    }
+
+                    if (isTypeExpression && custom.RequiresValueExpression)
+                    {
+                        continue;
+                    }
+
+                    var customItem = new VsCompletionItem(custom.Name, this, _icon, ImmutableArray<CompletionFilter>.Empty, custom.Suffix);
+                    customItem.Properties.AddProperty(CompletionPropertyNames.PostfixTemplate, custom.Name);
+                    customItem.Properties.AddProperty(CompletionPropertyNames.ExpressionText, expressionResult.Text);
+                    customItem.Properties.AddProperty(CompletionPropertyNames.ExpressionStart, expressionResult.SpanStart);
+                    customItem.Properties.AddProperty(CompletionPropertyNames.DotPosition, dotPosition);
+
+                    items.Add(customItem);
+                }
+
                 return new VsCompletionContext(items.ToImmutable());
             }
             catch (Exception ex)
@@ -174,7 +201,7 @@ namespace PostfixTemplates.Completion
         public Task<object> GetDescriptionAsync(IAsyncCompletionSession session, VsCompletionItem item, CancellationToken cancellationToken)
         {
             if (item.Properties.TryGetProperty(CompletionPropertyNames.PostfixTemplate, out string templateName)
-                && PostfixTemplate.ByName.TryGetValue(templateName, out PostfixTemplate template))
+                && PostfixTemplate.TryGetByName(templateName, out PostfixTemplate template))
             {
                 var description = $"{template.Description}\n\nExample: {template.Example}";
                 return Task.FromResult<object>(description);
