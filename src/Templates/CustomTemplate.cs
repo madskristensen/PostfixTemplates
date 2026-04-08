@@ -94,6 +94,6 @@ namespace PostfixTemplates.Templates
     internal sealed class CustomTemplateFile
     {
         [JsonProperty("templates")]
-        public CustomTemplateDefinition[] Templates { get; set; } = Array.Empty<CustomTemplateDefinition>();
+        public CustomTemplateDefinition[] Templates { get; set; } = [];
     }
 }

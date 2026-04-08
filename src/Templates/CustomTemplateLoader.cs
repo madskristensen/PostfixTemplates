@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Newtonsoft.Json;
 
 namespace PostfixTemplates.Templates
@@ -20,6 +21,7 @@ namespace PostfixTemplates.Templates
         private static IReadOnlyList<CustomTemplate> _templates = [];
         private static FileSystemWatcher _watcher;
         private static string _watchedFilePath;
+        private static Timer _debounceTimer;
 
         /// <summary>
         /// The currently loaded custom templates. Empty when no file is found
@@ -66,7 +68,7 @@ namespace PostfixTemplates.Templates
 
             lock (_lock)
             {
-                _templates = Array.Empty<CustomTemplate>();
+                _templates = [];
             }
         }
 
@@ -78,7 +80,7 @@ namespace PostfixTemplates.Templates
         {
             if (string.IsNullOrWhiteSpace(json))
             {
-                return Array.Empty<CustomTemplate>();
+                return [];
             }
 
             try
@@ -87,7 +89,7 @@ namespace PostfixTemplates.Templates
 
                 if (file?.Templates == null || file.Templates.Length == 0)
                 {
-                    return Array.Empty<CustomTemplate>();
+                    return [];
                 }
 
                 return file.Templates
@@ -97,7 +99,7 @@ namespace PostfixTemplates.Templates
             }
             catch (JsonException)
             {
-                return Array.Empty<CustomTemplate>();
+                return [];
             }
         }
 
@@ -109,7 +111,7 @@ namespace PostfixTemplates.Templates
                 {
                     lock (_lock)
                     {
-                        _templates = Array.Empty<CustomTemplate>();
+                        _templates = [];
                     }
 
                     return;
@@ -129,7 +131,7 @@ namespace PostfixTemplates.Templates
 
                 lock (_lock)
                 {
-                    _templates = Array.Empty<CustomTemplate>();
+                    _templates = [];
                 }
             }
         }
@@ -157,6 +159,12 @@ namespace PostfixTemplates.Templates
 
         private static void StopWatching()
         {
+            if (_debounceTimer != null)
+            {
+                _debounceTimer.Dispose();
+                _debounceTimer = null;
+            }
+
             if (_watcher != null)
             {
                 _watcher.EnableRaisingEvents = false;
@@ -181,7 +189,17 @@ namespace PostfixTemplates.Templates
             ReloadFromWatchedPath();
         }
 
+        /// <summary>
+        /// Debounces file system events by resetting a 200ms timer on each call.
+        /// The actual reload only fires once the events stop for 200ms.
+        /// </summary>
         private static void ReloadFromWatchedPath()
+        {
+            _debounceTimer?.Dispose();
+            _debounceTimer = new Timer(OnDebounceElapsed, null, 200, Timeout.Infinite);
+        }
+
+        private static void OnDebounceElapsed(object state)
         {
             var path = _watchedFilePath;
 
