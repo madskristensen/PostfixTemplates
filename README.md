@@ -12,11 +12,17 @@ or get the latest CI build from [Open VSIX Gallery][vsixgallery].
 
 --------------------------------------
 
-Postfix code completion templates for C#. Type an expression followed by a dot and a template shortcut to quickly transform it into a statement or wrap it in a common pattern.
+Stop writing boilerplate. Type what you mean, then let the template finish the thought.
+
+<!-- TODO: Add an animated GIF here showing a postfix template in action (e.g. typing "isValid.if" and watching it expand). A short recording is the single most effective way to sell the extension at a glance. -->
+
+Postfix Templates adds 40+ code completion shortcuts for C#. Type an expression, press `.`, and pick a template from IntelliSense to instantly transform it into a full statement or common pattern - no snippets to memorize, no extra keystrokes.
 
 ## How it works
 
-After typing a C# expression, press `.` and select a postfix template from the IntelliSense completion list. The expression is automatically transformed into the expanded form.
+1. Write any C# expression.
+2. Press `.` and choose a postfix template from the completion list.
+3. The expression is automatically wrapped or transformed.
 
 For example, typing `isValid.if` expands to:
 
@@ -26,7 +32,9 @@ if (isValid)
 }
 ```
 
-Templates are context-aware — they only appear when applicable to the expression type.
+<!-- TODO: Add a short animated GIF or screenshot here showing the IntelliSense completion list with postfix templates appearing after the dot. -->
+
+Templates are context-aware - they only appear when applicable to the expression type. Boolean templates show up for boolean expressions, enumerable templates for collections, and so on.
 
 ## Templates
 
@@ -76,8 +84,10 @@ Templates are context-aware — they only appear when applicable to the expressi
 
 ## Configuration
 
-Each template can be individually enabled or disabled from **Tools → Options → Postfix Templates → General**.
+Each template can be individually enabled or disabled from **Tools -> Options -> Postfix Templates -> General**. Turn off the ones you don't need to keep the completion list focused.
+
+<!-- TODO: Add a screenshot of the Tools > Options page showing the template toggles. -->
 
 ## Contribute
 
-[Issues](https://github.com/madskristensen/PostfixTemplates/issues), ideas, and pull requests are welcome.
+Check out the [issue tracker](https://github.com/madskristensen/PostfixTemplates/issues) for ideas, bugs, and feature requests. Pull requests are welcome.
